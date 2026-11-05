@@ -1,6 +1,7 @@
 import path from "node:path";
 
-const SHARED_PACKAGE = "@starter/contracts";
+/** Workspace packages under packages/ that apps may import. Apps themselves are never importable. */
+const SHARED_PACKAGES = ["@starter/contracts", "@starter/api-client"];
 
 /**
  * Finds which workspace a file belongs to, e.g. { kind: "apps", name: "web", root: "/repo/apps/web" }.
@@ -17,16 +18,16 @@ function workspaceOf(filename) {
 }
 
 /**
- * Apps never import each other, and packages never import apps. The only code they share is the
- * contract package, so a change in one app cannot silently break another.
+ * Apps never import each other, and packages never import apps. Apps share code only through
+ * packages/, so a change in one app cannot silently break another.
  */
 const noCrossWorkspaceImports = {
   meta: {
     type: "problem",
-    docs: { description: "Keep apps independent: share code only through @starter/contracts" },
+    docs: { description: "Keep apps independent: share code only through packages/" },
     messages: {
       otherWorkspace:
-        "'{{source}}' reaches into another workspace. Apps share code only through @starter/contracts.",
+        "'{{source}}' reaches into another workspace. Apps share code only through packages/ ({{shared}}).",
       packageImportsApp: "Packages must not import apps ('{{source}}').",
     },
     schema: [],
@@ -39,16 +40,21 @@ const noCrossWorkspaceImports = {
       if (typeof source !== "string") return;
 
       if (source.startsWith("@starter/")) {
-        if (source === SHARED_PACKAGE || source.startsWith(`${SHARED_PACKAGE}/`)) return;
+        if (SHARED_PACKAGES.some((name) => source === name || source.startsWith(`${name}/`)))
+          return;
         const messageId = workspace.kind === "packages" ? "packageImportsApp" : "otherWorkspace";
-        context.report({ node, messageId, data: { source } });
+        context.report({ node, messageId, data: { source, shared: SHARED_PACKAGES.join(", ") } });
         return;
       }
 
       if (source.startsWith(".")) {
         const target = path.resolve(path.dirname(context.filename), source);
         if (!target.startsWith(workspace.root + path.sep)) {
-          context.report({ node, messageId: "otherWorkspace", data: { source } });
+          context.report({
+            node,
+            messageId: "otherWorkspace",
+            data: { source, shared: SHARED_PACKAGES.join(", ") },
+          });
         }
       }
     }

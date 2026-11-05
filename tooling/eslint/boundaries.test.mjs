@@ -21,6 +21,10 @@ tester.run("no-cross-workspace-imports", rule, {
       code: 'import { api } from "../lib/api.ts";',
     },
     { filename: "/repo/apps/server/src/main.ts", code: 'import { Hono } from "hono";' },
+    {
+      filename: "/repo/apps/mobile/src/session.ts",
+      code: 'import { createApiClient } from "@starter/api-client";',
+    },
     { filename: "/repo/tooling/harness/x.mjs", code: 'import "../../apps/web/src/main.tsx";' },
   ],
   invalid: [
