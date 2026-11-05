@@ -31,6 +31,9 @@ export default function RootLayout() {
             <Stack.Screen name="posts/[id]/index" options={{ title: "Post" }} />
             <Stack.Screen name="posts/[id]/edit" options={{ ...modal, title: "Edit post" }} />
             <Stack.Screen name="posts/new" options={{ ...modal, title: "New post" }} />
+            <Stack.Screen name="workspaces/index" options={{ title: "Workspaces" }} />
+            <Stack.Screen name="workspaces/[id]" options={{ title: "Workspace" }} />
+            <Stack.Screen name="notifications" options={{ title: "Notifications" }} />
             <Stack.Screen name="sign-in" options={{ ...modal, title: "Sign in" }} />
             <Stack.Screen name="sign-up" options={{ ...modal, title: "Create account" }} />
           </Stack>

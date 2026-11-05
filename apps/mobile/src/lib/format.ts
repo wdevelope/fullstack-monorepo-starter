@@ -1,3 +1,5 @@
+import type { Notification } from "@starter/contracts";
+
 const MINUTE = 60;
 const HOUR = 60 * MINUTE;
 const DAY = 24 * HOUR;
@@ -25,4 +27,16 @@ export function formatWait(totalSeconds: number): string {
 
 export function pluralize(count: number, noun: string): string {
   return `${count} ${noun}${count === 1 ? "" : "s"}`;
+}
+
+/** One line per notification: who did what on which post (never the comment text). */
+export function notificationText(notification: Notification): string {
+  const verb = notification.type === "comment" ? "commented on" : "liked";
+  return `${notification.actor.nickname} ${verb} “${notification.post.title}”`;
+}
+
+/** The unread badge: nothing at zero, and never wider than "99+". */
+export function formatBadge(count: number): string | null {
+  if (count <= 0) return null;
+  return count > 99 ? "99+" : String(count);
 }
