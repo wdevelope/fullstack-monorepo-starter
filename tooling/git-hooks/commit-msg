@@ -1,0 +1,2 @@
+#!/bin/sh
+exec node tooling/harness/commit-guard.mjs --commit-msg "$1"

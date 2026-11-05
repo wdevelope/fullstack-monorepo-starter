@@ -1,0 +1,12 @@
+#!/bin/sh
+# Enabled by `pnpm install` (prepare script sets core.hooksPath). Do not bypass with --no-verify.
+set -e
+node tooling/harness/commit-guard.mjs --staged
+node tooling/harness/spec-check.mjs
+
+staged=$(git diff --cached --name-only --diff-filter=ACM)
+[ -z "$staged" ] && exit 0
+echo "$staged" | xargs pnpm exec prettier --check --ignore-unknown
+lintable=$(echo "$staged" | grep -E '\.(ts|tsx|mjs)$' || true)
+[ -n "$lintable" ] && echo "$lintable" | xargs pnpm exec eslint --no-warn-ignored
+exit 0
