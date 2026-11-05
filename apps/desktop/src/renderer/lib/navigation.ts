@@ -2,7 +2,11 @@
 export type View =
   | { name: "posts" }
   | { name: "post"; id: string }
-  | { name: "new-post" }
+  | { name: "new-post"; workspaceId?: string }
+  | { name: "workspaces" }
+  | { name: "workspace"; id: string }
+  | { name: "workspace-members"; id: string }
+  | { name: "notifications" }
   | { name: "edit-post"; id: string }
   | { name: "sign-in" }
   | { name: "sign-up" };

@@ -1,4 +1,4 @@
-import type { User } from "@starter/contracts";
+import type { NotificationEvent, User } from "@starter/contracts";
 import { contextBridge, ipcRenderer, type IpcRendererEvent } from "electron";
 
 import { IPC, type DesktopBridge } from "../shared/ipc.ts";
@@ -21,6 +21,13 @@ const bridge: DesktopBridge = {
     },
   },
   rpc: (path, input) => ipcRenderer.invoke(IPC.rpc, path, input),
+  onNotification(listener) {
+    const forward = (_event: IpcRendererEvent, event: NotificationEvent) => listener(event);
+    ipcRenderer.on(IPC.notification, forward);
+    return () => {
+      ipcRenderer.removeListener(IPC.notification, forward);
+    };
+  },
 };
 
 contextBridge.exposeInMainWorld("desktop", bridge);

@@ -44,6 +44,9 @@ describe("rpc allowlist", () => {
       "auth.me",
       "comments.create",
       "comments.delete",
+      "notifications.list",
+      "notifications.markRead",
+      "notifications.unreadCount",
       "posts.create",
       "posts.delete",
       "posts.get",
@@ -51,7 +54,34 @@ describe("rpc allowlist", () => {
       "posts.list",
       "posts.unlike",
       "posts.update",
+      "workspaces.addMember",
+      "workspaces.create",
+      "workspaces.delete",
+      "workspaces.get",
+      "workspaces.list",
+      "workspaces.removeMember",
+      "workspaces.updateMemberRole",
     ]);
+  });
+
+  it("WS-3 forwards workspace calls with the email normalised by the contract", async () => {
+    const { handlers, calls } = fakeApiClient({});
+    const input = { workspaceId: POST_ID, email: " Bob@Example.com " };
+
+    await handlers.rpc("workspaces.addMember", input);
+
+    expect(calls).toEqual([
+      { path: "workspaces.addMember", input: { workspaceId: POST_ID, email: "bob@example.com" } },
+    ]);
+  });
+
+  it("NOTI-6 keeps the stream out of rpc: main owns it and forwards events", async () => {
+    const { handlers, calls } = fakeApiClient({});
+
+    const result = await handlers.rpc("notifications.stream", undefined);
+
+    expect(result).toMatchObject({ ok: false, error: { code: "FORBIDDEN" } });
+    expect(calls).toEqual([]);
   });
 
   it("forwards an allowed call with the input parsed by the contract", async () => {

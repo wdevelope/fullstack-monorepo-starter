@@ -7,7 +7,16 @@ import { errorMessage, fieldErrors } from "../../lib/errors.ts";
 import { formatDate } from "../../lib/format.ts";
 import { orpc } from "../../lib/orpc.ts";
 
-export function Comments({ post, user }: { post: PostDetail; user: User | null }) {
+export function Comments({
+  post,
+  user,
+  canModerate,
+}: {
+  post: PostDetail;
+  user: User | null;
+  /** Workspace admins and the owner may delete anyone's comment there. */
+  canModerate: boolean;
+}) {
   const queryClient = useQueryClient();
   const [body, setBody] = useState("");
   // The detail holds the comments; the list shows their count.
@@ -45,7 +54,7 @@ export function Comments({ post, user }: { post: PostDetail; user: User | null }
               </p>
               <p className="mt-1 text-sm break-words whitespace-pre-wrap">{comment.body}</p>
             </div>
-            {user?.id === comment.author.id && (
+            {(user?.id === comment.author.id || canModerate) && (
               <Button
                 variant="danger"
                 disabled={remove.isPending && remove.variables.id === comment.id}
