@@ -1,0 +1,27 @@
+node_modules/
+.turbo/
+dist/
+out/
+coverage/
+*.tsbuildinfo
+*.log
+.DS_Store
+
+# Secrets: only example files are committed
+.env
+.env.*
+!.env.example
+*.pem
+*.p12
+*.key
+
+# App outputs
+apps/desktop/release/
+.expo/
+apps/mobile/ios/
+apps/mobile/android/
+apps/mobile/expo-env.d.ts
+
+# Claude Code local files
+.claude/settings.local.json
+.claude/worktrees/

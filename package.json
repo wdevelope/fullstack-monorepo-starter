@@ -1,0 +1,32 @@
+{
+  "name": "fullstack-monorepo-starter",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "prepare": "git config core.hooksPath tooling/git-hooks || true",
+    "dev": "pnpm --parallel --filter @starter/server --filter @starter/web dev",
+    "db:up": "docker compose up -d postgres",
+    "db:down": "docker compose down",
+    "lint": "eslint . && prettier --check .",
+    "format": "prettier --write .",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test --concurrency=1",
+    "build": "turbo run build",
+    "spec:check": "node tooling/harness/spec-check.mjs",
+    "test:tooling": "node --test \"tooling/**/*.test.mjs\" \".claude/hooks/*.test.mjs\""
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "eslint": "10.12.0",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "globals": "17.13.0",
+    "prettier": "3.9.9",
+    "turbo": "2.11.7",
+    "typescript": "catalog:",
+    "typescript-eslint": "8.71.1"
+  }
+}
