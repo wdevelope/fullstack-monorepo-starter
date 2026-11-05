@@ -1,6 +1,6 @@
 # Community
 
-- **Status**: Approved (2026-11-05; workspace moderation changes, was Done)
+- **Status**: Done (2026-11-05; workspace moderation changes)
 - **Code**: `packages/contracts/src/community.ts`, `apps/server/src/features/posts/`, `apps/server/src/features/comments/`
 
 ## Goal

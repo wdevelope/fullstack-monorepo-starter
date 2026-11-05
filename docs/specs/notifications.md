@@ -1,6 +1,6 @@
 # Notifications
 
-- **Status**: Approved (2026-11-05)
+- **Status**: Done (2026-11-05)
 - **Code**: `packages/contracts/src/notifications.ts`, `apps/server/src/features/notifications/`, notification writes in `apps/server/src/features/posts/` and `apps/server/src/features/comments/`, `packages/api-client/`
 
 ## Goal
@@ -34,7 +34,7 @@ Authors hear about activity on their posts as it happens. When someone comments 
 
 ## Contract
 
-`notifications.list` (cursor), `notifications.unreadCount`, `notifications.markRead` (`ids` optional; without it, all), `notifications.stream` (event iterator over SSE). A notification is `{ id, type: "comment" | "like", post: { id, title }, actor: { id, nickname }, createdAt, readAt }`.
+`notifications.list` (cursor), `notifications.unreadCount`, `notifications.markRead` (`ids` optional; without it, all), `notifications.stream` (event iterator over SSE). A notification is `{ id, type: "comment" | "like", post: { id, title }, actor: { id, nickname }, createdAt, readAt }`. The stream first sends `{ type: "ready", unreadCount }` once the server is listening for the user (so a reconnecting client knows when to refetch what it missed), then `{ type: "notification", notification, unreadCount }` for each new one.
 
 ## Data
 
