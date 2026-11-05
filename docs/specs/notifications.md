@@ -1,6 +1,6 @@
 # Notifications
 
-- **Status**: Draft
+- **Status**: Approved (2026-11-05)
 - **Code**: `packages/contracts/src/notifications.ts`, `apps/server/src/features/notifications/`, notification writes in `apps/server/src/features/posts/` and `apps/server/src/features/comments/`, `packages/api-client/`
 
 ## Goal

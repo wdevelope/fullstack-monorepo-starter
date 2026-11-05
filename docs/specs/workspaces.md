@@ -1,6 +1,6 @@
 # Workspaces
 
-- **Status**: Draft
+- **Status**: Approved (2026-11-05)
 - **Code**: `packages/contracts/src/workspaces.ts`, `apps/server/src/features/workspaces/`, workspace checks in `apps/server/src/features/posts/` and `apps/server/src/features/comments/`
 
 ## Goal
