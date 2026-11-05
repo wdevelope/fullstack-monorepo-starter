@@ -58,6 +58,30 @@ const RPC_PROCEDURES: Record<RpcPath, Forwarder> = {
   "posts.unlike": forward(contract.posts.unlike, (api, input) => api.posts.unlike(input)),
   "comments.create": forward(contract.comments.create, (api, input) => api.comments.create(input)),
   "comments.delete": forward(contract.comments.delete, (api, input) => api.comments.delete(input)),
+  "workspaces.create": forward(contract.workspaces.create, (api, input) =>
+    api.workspaces.create(input),
+  ),
+  "workspaces.list": (api) => api.workspaces.list(),
+  "workspaces.get": forward(contract.workspaces.get, (api, input) => api.workspaces.get(input)),
+  "workspaces.addMember": forward(contract.workspaces.addMember, (api, input) =>
+    api.workspaces.addMember(input),
+  ),
+  "workspaces.updateMemberRole": forward(contract.workspaces.updateMemberRole, (api, input) =>
+    api.workspaces.updateMemberRole(input),
+  ),
+  "workspaces.removeMember": forward(contract.workspaces.removeMember, (api, input) =>
+    api.workspaces.removeMember(input),
+  ),
+  "workspaces.delete": forward(contract.workspaces.delete, (api, input) =>
+    api.workspaces.delete(input),
+  ),
+  "notifications.list": forward(contract.notifications.list, (api, input) =>
+    api.notifications.list(input),
+  ),
+  "notifications.unreadCount": (api) => api.notifications.unreadCount(),
+  "notifications.markRead": forward(contract.notifications.markRead, (api, input) =>
+    api.notifications.markRead(input),
+  ),
 };
 
 export const RPC_PATHS: readonly string[] = Object.keys(RPC_PROCEDURES);

@@ -7,6 +7,7 @@ import { LoginPage, SignupPage } from "./routes/auth.tsx";
 import { PostEditorPage } from "./routes/post-editor.tsx";
 import { PostListPage } from "./routes/post-list.tsx";
 import { PostPage } from "./routes/post.tsx";
+import { WorkspaceListPage, WorkspaceMembersPage, WorkspacePage } from "./routes/workspaces.tsx";
 
 const rootRoute = createRootRoute({ component: Layout });
 
@@ -18,6 +19,27 @@ function requireUser({ location }: { location: { href: string } }) {
 const authSearch = (search: Record<string, unknown>) => ({
   redirect: safeRedirect(search.redirect),
 });
+
+const workspaceRoutes = [
+  createRoute({
+    getParentRoute: () => rootRoute,
+    path: "/workspaces",
+    beforeLoad: requireUser,
+    component: WorkspaceListPage,
+  }),
+  createRoute({
+    getParentRoute: () => rootRoute,
+    path: "/workspaces/$workspaceId",
+    beforeLoad: requireUser,
+    component: WorkspacePage,
+  }),
+  createRoute({
+    getParentRoute: () => rootRoute,
+    path: "/workspaces/$workspaceId/members",
+    beforeLoad: requireUser,
+    component: WorkspaceMembersPage,
+  }),
+];
 
 const routeTree = rootRoute.addChildren([
   createRoute({ getParentRoute: () => rootRoute, path: "/", component: PostListPage }),
@@ -37,6 +59,10 @@ const routeTree = rootRoute.addChildren([
     getParentRoute: () => rootRoute,
     path: "/posts/new",
     beforeLoad: requireUser,
+    // Set when writing in a workspace; absent for the public board.
+    validateSearch: (search: Record<string, unknown>) => ({
+      workspaceId: typeof search.workspaceId === "string" ? search.workspaceId : undefined,
+    }),
     component: PostEditorPage,
   }),
   createRoute({ getParentRoute: () => rootRoute, path: "/posts/$postId", component: PostPage }),
@@ -46,6 +72,7 @@ const routeTree = rootRoute.addChildren([
     beforeLoad: requireUser,
     component: PostEditorPage,
   }),
+  ...workspaceRoutes,
 ]);
 
 export const router = createRouter({ routeTree, defaultPreload: "intent" });

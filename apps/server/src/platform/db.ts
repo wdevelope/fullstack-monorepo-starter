@@ -10,3 +10,7 @@ export function createDatabase(url: string): { db: Database; close: () => Promis
   const db = drizzle(pool, { schema, casing: "snake_case" });
   return { db, close: () => pool.end() };
 }
+
+export type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
+/** The database or an open transaction: functions that take this can run inside either. */
+export type Executor = Database | Transaction;

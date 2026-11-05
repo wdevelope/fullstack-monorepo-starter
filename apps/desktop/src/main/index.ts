@@ -1,19 +1,22 @@
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 
-import { createApiClient } from "@starter/api-client";
+import { createApiClient, watchNotifications } from "@starter/api-client";
 import {
   app,
   BrowserWindow,
   ipcMain,
   nativeTheme,
+  Notification,
   safeStorage,
   session,
   type IpcMainInvokeEvent,
 } from "electron";
 
 import { IPC } from "../shared/ipc.ts";
+import { notificationText } from "../shared/notification-text.ts";
 import { createIpcHandlers } from "./ipc-handlers.ts";
+import { startNotificationForwarder } from "./notification-forwarder.ts";
 import { createSafeStorageTokenStore } from "./token-store.ts";
 import { createAppUrlCheck, readApiUrl } from "./urls.ts";
 
@@ -89,6 +92,28 @@ function start() {
     for (const window of BrowserWindow.getAllWindows()) {
       window.webContents.send(IPC.userChanged, user);
     }
+  });
+
+  startNotificationForwarder({
+    client,
+    watch: watchNotifications,
+    send(event) {
+      for (const window of BrowserWindow.getAllWindows()) {
+        window.webContents.send(IPC.notification, event);
+      }
+    },
+    // Shown by main, so the renderer still needs no notification permission.
+    show(notification) {
+      if (!Notification.isSupported()) return;
+      const shown = new Notification({ title: "Community", body: notificationText(notification) });
+      shown.on("click", () => {
+        const [window] = BrowserWindow.getAllWindows();
+        if (!window) return;
+        if (window.isMinimized()) window.restore();
+        window.focus();
+      });
+      shown.show();
+    },
   });
 
   // The renderer needs no camera, notifications, geolocation or anything else that asks.

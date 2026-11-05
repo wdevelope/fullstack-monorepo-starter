@@ -21,6 +21,8 @@ export const postSummarySchema = z.object({
   title: z.string(),
   excerpt: z.string(),
   author: authorSchema,
+  /** `null` on the public board. */
+  workspaceId: z.uuid().nullable(),
   createdAt: z.date(),
   commentCount: z.number().int(),
   likeCount: z.number().int(),
@@ -32,6 +34,8 @@ export const postDetailSchema = z.object({
   title: z.string(),
   body: z.string(),
   author: authorSchema,
+  /** `null` on the public board. */
+  workspaceId: z.uuid().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
   likeCount: z.number().int(),
@@ -48,8 +52,9 @@ export const postInputSchema = z.object({
 const byId = z.object({ id: z.uuid() });
 const likeState = z.object({ likeCount: z.number().int(), likedByMe: z.boolean() });
 
+// Workspace posts a caller cannot read are NOT_FOUND too, so their existence is not revealed.
 const NOT_FOUND = { status: 404, message: "Not found." } as const;
-const FORBIDDEN = { status: 403, message: "Only the author can do this." } as const;
+const FORBIDDEN = { status: 403, message: "You are not allowed to do this." } as const;
 
 export const postsContract = {
   list: oc
@@ -57,13 +62,19 @@ export const postsContract = {
       z.object({
         cursor: z.string().max(200).optional(),
         limit: z.number().int().min(1).max(50).default(20),
+        /** Lists a workspace board instead of the public one. Members only. */
+        workspaceId: z.uuid().optional(),
       }),
     )
-    .output(z.object({ items: z.array(postSummarySchema), nextCursor: z.string().nullable() })),
+    .output(z.object({ items: z.array(postSummarySchema), nextCursor: z.string().nullable() }))
+    .errors({ NOT_FOUND }),
 
   get: oc.input(byId).output(postDetailSchema).errors({ NOT_FOUND }),
 
-  create: oc.input(postInputSchema).output(z.object({ id: z.uuid() })),
+  create: oc
+    .input(postInputSchema.extend({ workspaceId: z.uuid().optional() }))
+    .output(z.object({ id: z.uuid() }))
+    .errors({ NOT_FOUND }),
 
   update: oc
     .input(byId.extend(postInputSchema.shape))

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatRelativeTime, formatWait, pluralize } from "./format";
+import { formatBadge, formatRelativeTime, formatWait, notificationText, pluralize } from "./format";
 
 describe("formatRelativeTime", () => {
   // Noon UTC keeps the calendar day the same in every common time zone.
@@ -42,5 +42,26 @@ describe("pluralize", () => {
     expect(pluralize(0, "like")).toBe("0 likes");
     expect(pluralize(1, "comment")).toBe("1 comment");
     expect(pluralize(12, "comment")).toBe("12 comments");
+  });
+});
+
+describe("notifications", () => {
+  const base = {
+    id: "00000000-0000-4000-8000-0000000000aa",
+    post: { id: "00000000-0000-4000-8000-0000000000bb", title: "Launch plan" },
+    actor: { id: "00000000-0000-4000-8000-0000000000cc", nickname: "bob" },
+    createdAt: new Date(0),
+    readAt: null,
+  };
+
+  it("NOTI-1 names the actor and the post, never the comment", () => {
+    expect(notificationText({ ...base, type: "comment" })).toBe("bob commented on “Launch plan”");
+    expect(notificationText({ ...base, type: "like" })).toBe("bob liked “Launch plan”");
+  });
+
+  it("NOTI-5 shows the unread count as a short badge, or nothing at zero", () => {
+    expect(formatBadge(0)).toBeNull();
+    expect(formatBadge(7)).toBe("7");
+    expect(formatBadge(120)).toBe("99+");
   });
 });

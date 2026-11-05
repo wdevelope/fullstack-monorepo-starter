@@ -16,6 +16,15 @@ describe("describeError", () => {
     expect(describeError(error)).toBe("Email or password is incorrect.");
   });
 
+  it("WS-3 shows the server's message for unknown emails and existing members", () => {
+    for (const [code, message] of [
+      ["USER_NOT_FOUND", "No account uses this email."],
+      ["ALREADY_MEMBER", "This person is already a member."],
+    ]) {
+      expect(describeError(new ORPCError(code!, { message }))).toBe(message);
+    }
+  });
+
   it("treats non-API errors as a connection problem", () => {
     expect(describeError(new TypeError("Failed to fetch"))).toMatch(/Could not reach/);
   });

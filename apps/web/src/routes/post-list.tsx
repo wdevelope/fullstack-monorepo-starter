@@ -8,9 +8,26 @@ import { timeAgo } from "../lib/time.ts";
 
 export function PostListPage() {
   const user = useUser();
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold">Posts</h1>
+        {user && (
+          <Link to="/posts/new" search={{ workspaceId: undefined }}>
+            <Button>New post</Button>
+          </Link>
+        )}
+      </div>
+      <PostList />
+    </div>
+  );
+}
+
+/** The public board, or a workspace board when `workspaceId` is given. */
+export function PostList({ workspaceId }: { workspaceId?: string }) {
   const posts = useInfiniteQuery(
     orpc.posts.list.infiniteOptions({
-      input: (cursor: string | undefined) => ({ cursor, limit: 10 }),
+      input: (cursor: string | undefined) => ({ cursor, limit: 10, workspaceId }),
       initialPageParam: undefined,
       getNextPageParam: (page) => page.nextCursor ?? undefined,
     }),
@@ -19,15 +36,6 @@ export function PostListPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Posts</h1>
-        {user && (
-          <Link to="/posts/new">
-            <Button>New post</Button>
-          </Link>
-        )}
-      </div>
-
       <ErrorBanner message={posts.error ? describeError(posts.error) : null} />
       {posts.isPending && <p className="text-sm text-zinc-500">Loading…</p>}
       {posts.isSuccess && items.length === 0 && (

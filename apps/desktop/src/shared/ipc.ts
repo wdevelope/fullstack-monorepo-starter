@@ -1,5 +1,5 @@
 import type { ORPCErrorJSON } from "@orpc/client";
-import type { Contract, User } from "@starter/contracts";
+import type { Contract, NotificationEvent, User } from "@starter/contracts";
 
 /** IPC channel names. The preload imports only this module, so it must stay free of runtime deps. */
 export const IPC = {
@@ -9,6 +9,8 @@ export const IPC = {
   signOut: "session:sign-out",
   userChanged: "session:user-changed",
   rpc: "rpc:call",
+  /** Main to renderer: one notification stream event. */
+  notification: "notifications:event",
 } as const;
 
 /**
@@ -19,6 +21,9 @@ export type RendererContract = {
   auth: Pick<Contract["auth"], "me">;
   posts: Contract["posts"];
   comments: Contract["comments"];
+  workspaces: Contract["workspaces"];
+  /** Not `stream`: main owns the stream and forwards its events on `IPC.notification`. */
+  notifications: Pick<Contract["notifications"], "list" | "unreadCount" | "markRead">;
 };
 
 /** Dotted paths of the renderer contract, e.g. `"posts.list"`. */
@@ -51,4 +56,6 @@ export interface DesktopBridge {
     onUserChange(listener: (user: User | null) => void): () => void;
   };
   rpc(path: string, input: unknown): Promise<IpcResult<unknown>>;
+  /** Live notification events, which main receives over SSE. */
+  onNotification(listener: (event: NotificationEvent) => void): () => void;
 }

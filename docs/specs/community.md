@@ -1,6 +1,6 @@
 # Community
 
-- **Status**: Done
+- **Status**: Done (2026-11-05; workspace moderation changes)
 - **Code**: `packages/contracts/src/community.ts`, `apps/server/src/features/posts/`, `apps/server/src/features/comments/`
 
 ## Goal
@@ -9,8 +9,8 @@ A small board where signed-in users write posts, comment and like. Anyone can re
 
 ## Rules
 
-1. Reading (list, detail) needs no sign-in. Writing, liking and commenting need a valid access token.
-2. Only the author can edit or delete a post or a comment.
+1. Reading the public board (list, detail) needs no sign-in. Writing, liking and commenting need a valid access token. Workspace boards are members-only ([workspaces.md](workspaces.md)).
+2. Only the author can edit a post. Only the author can delete a post or a comment, except in a workspace, where its admins and owner can also delete (moderation, [workspaces.md](workspaces.md)).
 3. Lists are newest first and use keyset (cursor) pagination on `(created_at, id)`, so pages stay stable while new posts arrive.
 4. Liking is idempotent: liking twice or unliking a post you did not like changes nothing. A primary key on `(post_id, user_id)` enforces it.
 5. Deleting a post deletes its comments and likes.

@@ -6,7 +6,17 @@ import { Button, ErrorNotice, Muted } from "./components/ui.tsx";
 import { AuthScreen } from "./features/auth/AuthScreen.tsx";
 import { EditPostScreen, NewPostScreen } from "./features/posts/PostEditorScreen.tsx";
 import { PostListScreen } from "./features/posts/PostListScreen.tsx";
+import {
+  NotificationButton,
+  NotificationsScreen,
+  useLiveNotifications,
+} from "./features/notifications/Notifications.tsx";
 import { PostScreen } from "./features/posts/PostScreen.tsx";
+import {
+  WorkspaceListScreen,
+  WorkspaceMembersScreen,
+  WorkspaceScreen,
+} from "./features/workspaces/WorkspaceScreens.tsx";
 import { errorMessage } from "./lib/errors.ts";
 import type { Navigate, View } from "./lib/navigation.ts";
 import { restoreSession, signOut, useSession } from "./lib/session.ts";
@@ -26,6 +36,10 @@ function Header({ user, navigate }: { user: User | null; navigate: Navigate }) {
         </button>
         {user ? (
           <div className="flex items-center gap-3">
+            <Button variant="ghost" onClick={() => navigate({ name: "workspaces" })}>
+              Workspaces
+            </Button>
+            <NotificationButton navigate={navigate} />
             <span className="text-sm text-zinc-500 dark:text-zinc-400">
               Signed in as{" "}
               <span className="font-medium text-zinc-900 dark:text-zinc-100">{user.nickname}</span>
@@ -54,7 +68,15 @@ function Screen({ view, user, navigate }: { view: View; user: User | null; navig
     case "post":
       return <PostScreen id={view.id} user={user} navigate={navigate} />;
     case "new-post":
-      return <NewPostScreen navigate={navigate} />;
+      return <NewPostScreen workspaceId={view.workspaceId} navigate={navigate} />;
+    case "workspaces":
+      return <WorkspaceListScreen navigate={navigate} />;
+    case "workspace":
+      return <WorkspaceScreen id={view.id} navigate={navigate} />;
+    case "workspace-members":
+      return <WorkspaceMembersScreen id={view.id} user={user} navigate={navigate} />;
+    case "notifications":
+      return <NotificationsScreen navigate={navigate} />;
     case "edit-post":
       return <EditPostScreen id={view.id} navigate={navigate} />;
     case "sign-in":
@@ -66,6 +88,7 @@ function Screen({ view, user, navigate }: { view: View; user: User | null; navig
 export function App() {
   const session = useSession();
   const [view, setView] = useState<View>({ name: "posts" });
+  useLiveNotifications();
 
   if (session.status === "restoring") {
     return (
@@ -77,7 +100,7 @@ export function App() {
 
   const { user, restoreError } = session;
   // Writing needs a session. If it ended meanwhile (e.g. the refresh token was rejected), sign in first.
-  const needsUser = view.name === "new-post" || view.name === "edit-post";
+  const needsUser = !["posts", "post", "sign-in", "sign-up"].includes(view.name);
   const current: View = needsUser && !user ? { name: "sign-in" } : view;
 
   return (

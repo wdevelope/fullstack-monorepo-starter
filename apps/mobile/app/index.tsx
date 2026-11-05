@@ -1,14 +1,14 @@
-import type { PostSummary } from "@starter/contracts";
-import { useInfiniteQuery, useMutation } from "@tanstack/react-query";
-import { Link, router, Stack } from "expo-router";
-import { useState } from "react";
-import { ActivityIndicator, FlatList, Pressable, RefreshControl, Text, View } from "react-native";
+import { useInfiniteQuery, useMutation, useQuery } from "@tanstack/react-query";
+import { router, Stack, useFocusEffect } from "expo-router";
+import { useCallback, useState } from "react";
+import { ActivityIndicator, FlatList, RefreshControl, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button, TextButton } from "../src/components/button";
 import { ErrorView } from "../src/components/feedback";
 import { client, orpc } from "../src/lib/api";
-import { formatRelativeTime, pluralize } from "../src/lib/format";
+import { formatBadge } from "../src/lib/format";
+import { PostRow, Separator } from "../src/posts/post-row";
 import { useUser } from "../src/session/use-user";
 
 const PAGE_SIZE = 20;
@@ -44,7 +44,7 @@ export default function PostListScreen() {
         options={{
           headerRight: () =>
             user ? (
-              <TextButton title="New post" onPress={() => router.push("/posts/new")} />
+              <HeaderActions />
             ) : (
               <TextButton title="Sign in" onPress={() => router.push("/sign-in")} />
             ),
@@ -83,31 +83,26 @@ export default function PostListScreen() {
   );
 }
 
-function PostRow({ post }: { post: PostSummary }) {
-  return (
-    <Link href={`/posts/${post.id}`} asChild>
-      <Pressable className="px-5 py-4 active:bg-neutral-50">
-        <Text className="text-[17px] font-semibold leading-6 text-neutral-900" numberOfLines={2}>
-          {post.title}
-        </Text>
-        <Text className="mt-1 text-[15px] leading-5 text-neutral-600" numberOfLines={3}>
-          {post.excerpt}
-        </Text>
-        <Text className="mt-2 text-xs text-neutral-500">
-          {[
-            post.author.nickname,
-            formatRelativeTime(post.createdAt),
-            pluralize(post.likeCount, "like"),
-            pluralize(post.commentCount, "comment"),
-          ].join(" · ")}
-        </Text>
-      </Pressable>
-    </Link>
+/** Workspaces, the notification badge and New post. No live stream on mobile: the count refreshes on focus. */
+function HeaderActions() {
+  const unread = useQuery(orpc.notifications.unreadCount.queryOptions());
+  const { refetch } = unread;
+  useFocusEffect(
+    useCallback(() => {
+      void refetch();
+    }, [refetch]),
   );
-}
-
-function Separator() {
-  return <View className="mx-5 h-px bg-neutral-100" />;
+  const badge = formatBadge(unread.data?.count ?? 0);
+  return (
+    <View className="flex-row items-center gap-4">
+      <TextButton title="Teams" onPress={() => router.push("/workspaces")} />
+      <TextButton
+        title={badge ? `🔔 ${badge}` : "🔔"}
+        onPress={() => router.push("/notifications")}
+      />
+      <TextButton title="New" onPress={() => router.push("/posts/new")} />
+    </View>
+  );
 }
 
 function AccountBar({ nickname }: { nickname: string }) {

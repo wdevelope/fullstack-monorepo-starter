@@ -71,8 +71,18 @@ function PostForm(props: {
   );
 }
 
-export function NewPostScreen({ navigate }: { navigate: Navigate }) {
+export function NewPostScreen({
+  workspaceId,
+  navigate,
+}: {
+  workspaceId: string | undefined;
+  navigate: Navigate;
+}) {
   const queryClient = useQueryClient();
+  const workspace = useQuery({
+    ...orpc.workspaces.get.queryOptions({ input: { id: workspaceId ?? "" } }),
+    enabled: Boolean(workspaceId),
+  });
   const create = useMutation(
     orpc.posts.create.mutationOptions({
       onSuccess: ({ id }) => {
@@ -84,13 +94,15 @@ export function NewPostScreen({ navigate }: { navigate: Navigate }) {
 
   return (
     <PostForm
-      heading="New post"
+      heading={workspace.data ? `New post in ${workspace.data.name}` : "New post"}
       initial={{ title: "", body: "" }}
       submitLabel="Publish"
       pending={create.isPending}
       error={create.error}
-      onSubmit={(values) => create.mutate(values)}
-      onCancel={() => navigate({ name: "posts" })}
+      onSubmit={(values) => create.mutate({ ...values, workspaceId })}
+      onCancel={() =>
+        navigate(workspaceId ? { name: "workspace", id: workspaceId } : { name: "posts" })
+      }
     />
   );
 }

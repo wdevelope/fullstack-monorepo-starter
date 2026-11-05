@@ -1,8 +1,9 @@
 # @starter/mobile
 
 The iOS and Android client: Expo Router, NativeWind (Tailwind v3) and TanStack Query on top of
-`@starter/api-client`. It implements the community board from [`docs/specs/community.md`](../../docs/specs/community.md)
-and the native side of [`docs/specs/auth.md`](../../docs/specs/auth.md).
+`@starter/api-client`. It implements the community board from [`docs/specs/community.md`](../../docs/specs/community.md),
+the native side of [`docs/specs/auth.md`](../../docs/specs/auth.md), workspace boards and the
+notification inbox.
 
 ## Run it
 
@@ -43,11 +44,19 @@ Plain HTTP is fine for development builds and Expo Go; release builds need an HT
 - `useUser()` reads the user with `useSyncExternalStore`. When the signed-in user changes, every
   query is refetched, so `likedByMe` and the author-only actions stay correct.
 
+## Workspaces and notifications
+
+- **Workspaces**: list and create, a workspace board, and new posts in a workspace. Member
+  management (adding people, roles) and moderation deletes are in the web and desktop apps only.
+- **Notifications**: an inbox with mark-read, and an unread badge in the header. There is **no live
+  stream on mobile for now**: the badge and the inbox refetch when their screen gains focus. Live delivery would use `watchNotifications` from `@starter/api-client` while
+  the app is in the foreground, and push notifications in the background.
+
 ## Layout
 
 | Path              | What it is                                                                  |
 | ----------------- | --------------------------------------------------------------------------- |
-| `app/`            | Routes: post list, post detail, new and edit post, sign in, sign up         |
+| `app/`            | Routes: posts, workspaces, notifications, sign in, sign up                  |
 | `src/lib/`        | API client, error messages, form validation with the contract's Zod schemas |
 | `src/posts/`      | Post form, like button, comments and query cache helpers                    |
 | `src/components/` | Buttons, text fields, loading and error states                              |

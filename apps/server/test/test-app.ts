@@ -8,6 +8,7 @@ import { allTables } from "../src/db/schema.ts";
 import { createPasswordHasher } from "../src/features/auth/password.ts";
 import { createDatabase } from "../src/platform/db.ts";
 import { createHttpApp } from "../src/platform/http.ts";
+import { createNotificationHub } from "../src/platform/notification-hub.ts";
 import { testDatabaseUrl } from "./database-url.ts";
 
 export const TEST_JWT_SECRET = "test-secret-that-is-at-least-32-characters";
@@ -43,10 +44,12 @@ interface ClientOptions {
 /**
  * Boots the real HTTP app against the test database with a controllable clock and a cheap
  * password hash. Calls go through `app.fetch`, so routing, CORS, cookies and validation are real.
+ * Each test app has its own notification hub (its own LISTEN connection), like a server instance.
  */
 export function createTestApp() {
   let now = new Date();
   const database = createDatabase(testDatabaseUrl());
+  const notificationHub = createNotificationHub(testDatabaseUrl());
   const app = createHttpApp(
     {
       db: database.db,
@@ -54,6 +57,7 @@ export function createTestApp() {
       passwords: createPasswordHasher(2 ** 10),
       jwtSecret: TEST_JWT_SECRET,
       cookieSecure: true,
+      notificationHub,
     },
     { corsOrigins: ["http://localhost:5173"] },
   );
@@ -94,10 +98,16 @@ export function createTestApp() {
     advanceClock(ms: number) {
       now = new Date(now.getTime() + ms);
     },
+    /** Resolves once the notification hub is LISTENing. */
+    ready: () => notificationHub.ready(),
     async reset() {
       now = new Date();
       await database.db.execute(sql`TRUNCATE ${allTables} CASCADE`);
+      await notificationHub.ready();
     },
-    close: database.close,
+    async close() {
+      await notificationHub.close();
+      await database.close();
+    },
   };
 }

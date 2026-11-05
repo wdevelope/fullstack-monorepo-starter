@@ -1,5 +1,5 @@
 import { ORPCError } from "@orpc/client";
-import type { User } from "@starter/contracts";
+import { workspacePermissions, type User } from "@starter/contracts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { Alert, Button, ErrorNotice, Muted } from "../../components/ui.tsx";
@@ -21,6 +21,13 @@ export function PostScreen({
   const queryClient = useQueryClient();
   const postKey = orpc.posts.get.queryKey({ input: { id } });
   const post = useQuery(orpc.posts.get.queryOptions({ input: { id } }));
+  const workspaceId = post.data?.workspaceId ?? null;
+  // For a workspace post: its name for the back button and the caller's role for moderation.
+  const workspace = useQuery({
+    ...orpc.workspaces.get.queryOptions({ input: { id: workspaceId ?? "" } }),
+    enabled: Boolean(workspaceId && user),
+  });
+  const canModerate = workspace.data ? workspacePermissions(workspace.data.myRole).moderate : false;
 
   const applyLikes = (likes: { likeCount: number; likedByMe: boolean }) => {
     queryClient.setQueryData(postKey, (old) => old && { ...old, ...likes });
@@ -33,7 +40,7 @@ export function PostScreen({
       onSuccess: () => {
         queryClient.removeQueries({ queryKey: postKey });
         void queryClient.invalidateQueries({ queryKey: orpc.posts.list.key() });
-        navigate({ name: "posts" });
+        navigate(workspaceId ? { name: "workspace", id: workspaceId } : { name: "posts" });
       },
     }),
   );
@@ -42,9 +49,11 @@ export function PostScreen({
     <Button
       variant="ghost"
       className="-ml-3 self-start"
-      onClick={() => navigate({ name: "posts" })}
+      onClick={() =>
+        navigate(workspaceId ? { name: "workspace", id: workspaceId } : { name: "posts" })
+      }
     >
-      ← All posts
+      ← {workspaceId ? (workspace.data?.name ?? "Workspace") : "All posts"}
     </Button>
   );
 
@@ -100,11 +109,13 @@ export function PostScreen({
         ) : (
           <Muted>{data.likeCount} likes</Muted>
         )}
-        {isAuthor && (
+        {(isAuthor || canModerate) && (
           <div className="ml-auto flex gap-2">
-            <Button variant="secondary" onClick={() => navigate({ name: "edit-post", id })}>
-              Edit
-            </Button>
+            {isAuthor && (
+              <Button variant="secondary" onClick={() => navigate({ name: "edit-post", id })}>
+                Edit
+              </Button>
+            )}
             <Button
               variant="danger"
               disabled={remove.isPending}
@@ -121,7 +132,7 @@ export function PostScreen({
       </div>
       {actionError && <Alert>{errorMessage(actionError)}</Alert>}
 
-      <Comments post={data} user={user} />
+      <Comments post={data} user={user} canModerate={canModerate} />
     </article>
   );
 }

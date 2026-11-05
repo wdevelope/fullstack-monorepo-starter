@@ -10,15 +10,6 @@ import { orpc } from "../../lib/orpc.ts";
 const PAGE_SIZE = 20;
 
 export function PostListScreen({ user, navigate }: { user: User | null; navigate: Navigate }) {
-  const posts = useInfiniteQuery(
-    orpc.posts.list.infiniteOptions({
-      input: (cursor: string | undefined) => ({ cursor, limit: PAGE_SIZE }),
-      initialPageParam: undefined,
-      getNextPageParam: (page) => page.nextCursor ?? undefined,
-    }),
-  );
-  const items = posts.data?.pages.flatMap((page) => page.items) ?? [];
-
   return (
     <section className="flex flex-col gap-6">
       <div className="flex items-center justify-between gap-4">
@@ -29,7 +20,24 @@ export function PostListScreen({ user, navigate }: { user: User | null; navigate
           <Muted>Sign in to write, like and comment.</Muted>
         )}
       </div>
+      <PostList navigate={navigate} />
+    </section>
+  );
+}
 
+/** The public board, or a workspace board when `workspaceId` is given. */
+export function PostList({ workspaceId, navigate }: { workspaceId?: string; navigate: Navigate }) {
+  const posts = useInfiniteQuery(
+    orpc.posts.list.infiniteOptions({
+      input: (cursor: string | undefined) => ({ cursor, limit: PAGE_SIZE, workspaceId }),
+      initialPageParam: undefined,
+      getNextPageParam: (page) => page.nextCursor ?? undefined,
+    }),
+  );
+  const items = posts.data?.pages.flatMap((page) => page.items) ?? [];
+
+  return (
+    <div className="flex flex-col gap-6">
       {posts.isPending && <Muted>Loading posts…</Muted>}
       {posts.isError && (
         <ErrorNotice message={errorMessage(posts.error)} onRetry={() => void posts.refetch()} />
@@ -69,6 +77,6 @@ export function PostListScreen({ user, navigate }: { user: User | null; navigate
           {posts.isFetchingNextPage ? "Loading…" : "Load more"}
         </Button>
       )}
-    </section>
+    </div>
   );
 }

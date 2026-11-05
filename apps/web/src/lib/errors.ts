@@ -18,6 +18,8 @@ export function describeError(error: unknown): string {
     case "EMAIL_TAKEN":
     case "FORBIDDEN":
     case "NOT_FOUND":
+    case "USER_NOT_FOUND":
+    case "ALREADY_MEMBER":
       return error.message;
     default:
       return "Something went wrong. Please try again.";

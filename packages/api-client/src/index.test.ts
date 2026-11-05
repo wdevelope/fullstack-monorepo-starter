@@ -54,6 +54,8 @@ function createFakeServer() {
     },
     posts: {} as never,
     comments: {} as never,
+    workspaces: {} as never,
+    notifications: {} as never,
   });
 
   const handler = new RPCHandler(router);
