@@ -82,3 +82,26 @@ export const workspacesContract = {
     .output(z.object({}))
     .errors({ NOT_FOUND, FORBIDDEN }),
 };
+
+/**
+ * Which workspace controls to show for the caller's role, mirroring the server's rules (WS rules
+ * 2, 6 and 8). Clients use it to hide buttons; the server still decides every request.
+ */
+export function workspacePermissions(myRole: WorkspaceRole) {
+  return {
+    addMembers: myRole !== "member",
+    changeRoles: myRole === "owner",
+    moderate: myRole !== "member",
+    deleteWorkspace: myRole === "owner",
+  };
+}
+
+/** Whether the caller may remove `target`. Removing yourself is leaving; the owner never leaves. */
+export function canRemoveMember(
+  myRole: WorkspaceRole,
+  target: { isSelf: boolean; role: WorkspaceRole },
+): boolean {
+  if (target.role === "owner") return false;
+  if (target.isSelf) return true;
+  return myRole === "owner" || (myRole === "admin" && target.role === "member");
+}

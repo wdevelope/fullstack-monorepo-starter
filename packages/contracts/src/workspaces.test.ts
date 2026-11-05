@@ -2,7 +2,13 @@ import { describe, expect, it } from "vitest";
 
 import { postsContract } from "./community.ts";
 import { notificationsContract } from "./notifications.ts";
-import { WORKSPACE_NAME_MAX, workspaceNameSchema, workspacesContract } from "./workspaces.ts";
+import {
+  canRemoveMember,
+  WORKSPACE_NAME_MAX,
+  workspaceNameSchema,
+  workspacePermissions,
+  workspacesContract,
+} from "./workspaces.ts";
 
 function validate(schema: unknown, input: unknown) {
   const standard = schema as { "~standard": { validate(input: unknown): unknown } };
@@ -52,6 +58,40 @@ describe("workspace input", () => {
     expect(validate(input, { title: "T", body: "B", workspaceId: "nope" })).toHaveProperty(
       "issues",
     );
+  });
+});
+
+describe("workspace permissions shown by clients", () => {
+  it("WS-3 lets the owner and admins add members", () => {
+    expect(workspacePermissions("owner").addMembers).toBe(true);
+    expect(workspacePermissions("admin").addMembers).toBe(true);
+    expect(workspacePermissions("member").addMembers).toBe(false);
+  });
+
+  it("WS-4 lets only the owner change roles", () => {
+    expect(workspacePermissions("owner").changeRoles).toBe(true);
+    expect(workspacePermissions("admin").changeRoles).toBe(false);
+  });
+
+  it("WS-5 lets admins remove members only, and the owner anyone but themselves", () => {
+    expect(canRemoveMember("admin", { isSelf: false, role: "member" })).toBe(true);
+    expect(canRemoveMember("admin", { isSelf: false, role: "admin" })).toBe(false);
+    expect(canRemoveMember("admin", { isSelf: false, role: "owner" })).toBe(false);
+    expect(canRemoveMember("owner", { isSelf: false, role: "admin" })).toBe(true);
+    expect(canRemoveMember("member", { isSelf: false, role: "member" })).toBe(false);
+  });
+
+  it("WS-6 lets everyone but the owner leave", () => {
+    expect(canRemoveMember("member", { isSelf: true, role: "member" })).toBe(true);
+    expect(canRemoveMember("admin", { isSelf: true, role: "admin" })).toBe(true);
+    expect(canRemoveMember("owner", { isSelf: true, role: "owner" })).toBe(false);
+  });
+
+  it("WS-9 lets admins and the owner moderate, and WS-10 only the owner delete", () => {
+    expect(workspacePermissions("admin").moderate).toBe(true);
+    expect(workspacePermissions("member").moderate).toBe(false);
+    expect(workspacePermissions("owner").deleteWorkspace).toBe(true);
+    expect(workspacePermissions("admin").deleteWorkspace).toBe(false);
   });
 });
 

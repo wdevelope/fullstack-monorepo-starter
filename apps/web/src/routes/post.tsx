@@ -1,4 +1,4 @@
-import { COMMENT_BODY_MAX } from "@starter/contracts";
+import { COMMENT_BODY_MAX, workspacePermissions } from "@starter/contracts";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { getRouteApi, Link, useNavigate } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
@@ -18,6 +18,12 @@ export function PostPage() {
 
   const postQuery = orpc.posts.get.queryOptions({ input: { id: postId } });
   const post = useQuery(postQuery);
+  const workspaceId = post.data?.workspaceId ?? null;
+  // For a workspace post: its name for the breadcrumb and the caller's role for moderation.
+  const workspace = useQuery({
+    ...orpc.workspaces.get.queryOptions({ input: { id: workspaceId ?? "" } }),
+    enabled: Boolean(workspaceId && user),
+  });
   const refresh = () =>
     Promise.all([
       queryClient.invalidateQueries({ queryKey: postQuery.queryKey }),
@@ -49,7 +55,11 @@ export function PostPage() {
     orpc.posts.delete.mutationOptions({
       onSuccess: async () => {
         await queryClient.invalidateQueries({ queryKey: orpc.posts.list.key() });
-        await navigate({ to: "/" });
+        if (workspaceId) {
+          await navigate({ to: "/workspaces/$workspaceId", params: { workspaceId } });
+        } else {
+          await navigate({ to: "/" });
+        }
       },
     }),
   );
@@ -59,6 +69,8 @@ export function PostPage() {
 
   const data = post.data;
   const isAuthor = user?.id === data.author.id;
+  // Workspace admins and the owner may delete others' posts and comments (moderation).
+  const canModerate = workspace.data ? workspacePermissions(workspace.data.myRole).moderate : false;
   const mutationError = [like, unlike, addComment, deleteComment, deletePost].find(
     (m) => m.error,
   )?.error;
@@ -70,6 +82,15 @@ export function PostPage() {
 
   return (
     <div className="space-y-6">
+      {workspaceId && (
+        <Link
+          to="/workspaces/$workspaceId"
+          params={{ workspaceId }}
+          className="text-sm text-zinc-500 hover:underline"
+        >
+          ← {workspace.data?.name ?? "Workspace"}
+        </Link>
+      )}
       <Card>
         <article className="space-y-4">
           <header className="space-y-1">
@@ -89,11 +110,15 @@ export function PostPage() {
             >
               {data.likedByMe ? "♥ Liked" : "♡ Like"} · {data.likeCount}
             </Button>
-            {isAuthor && (
+            {(isAuthor || canModerate) && (
               <>
-                <Link to="/posts/$postId/edit" params={{ postId }} className="ml-auto">
-                  <Button variant="secondary">Edit</Button>
-                </Link>
+                {isAuthor ? (
+                  <Link to="/posts/$postId/edit" params={{ postId }} className="ml-auto">
+                    <Button variant="secondary">Edit</Button>
+                  </Link>
+                ) : (
+                  <span className="ml-auto" />
+                )}
                 <Button
                   variant="danger"
                   disabled={deletePost.isPending}
@@ -125,7 +150,7 @@ export function PostPage() {
                 <span>
                   {c.author.nickname} · {timeAgo(c.createdAt)}
                 </span>
-                {user?.id === c.author.id && (
+                {(user?.id === c.author.id || canModerate) && (
                   <button
                     className="text-red-600 hover:underline dark:text-red-400"
                     onClick={() => deleteComment.mutate({ id: c.id })}
