@@ -160,3 +160,5 @@ export function createApiClient(options: ApiClientOptions): ApiClient {
     },
   };
 }
+
+export { watchNotifications, type WatchNotificationsOptions } from "./notifications.ts";
