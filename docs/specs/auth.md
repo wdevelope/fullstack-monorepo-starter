@@ -1,7 +1,7 @@
 # Auth
 
 - **Status**: Done
-- **Code**: `packages/contracts/src/auth.ts`, `apps/server/src/features/auth/`
+- **Code**: `packages/contracts/src/auth.ts`, `apps/server/src/features/auth/`, `packages/api-client/`
 
 ## Goal
 
@@ -17,6 +17,8 @@ Email and password accounts for the web, desktop and mobile clients, with short-
 6. Five consecutive failed logins lock the account for 15 minutes. A successful login resets the counter.
 7. Unknown email and wrong password return the same error and take the same time, so emails cannot be enumerated.
 8. Web clients send `x-client-kind: web`. Only then does the server read or set the refresh cookie (`HttpOnly`, `SameSite=Strict`, path `/rpc/auth`). A cross-site form cannot set that header, so the cookie cannot be used for CSRF.
+
+9. Clients refresh one at a time. A reused refresh token revokes its family, so two parallel refreshes would sign the user out. `packages/api-client` shares one in-flight refresh between callers.
 
 ## Scenarios
 
@@ -37,6 +39,8 @@ Email and password accounts for the web, desktop and mobile clients, with short-
 | AUTH-13 | An access token issued to one client kind is used by the other       | `UNAUTHORIZED`                                                                                |
 | AUTH-14 | A password is hashed                                                 | The hash is salted scrypt and verifies only the original password                             |
 | AUTH-15 | A refresh is sent with the cookie but without `x-client-kind: web`   | `INVALID_REFRESH_TOKEN`                                                                       |
+| AUTH-16 | A client's access token expires while the user is signed in          | The client refreshes once (shared by concurrent calls) and retries the call                   |
+| AUTH-17 | The server rejects a client's refresh token                          | The client clears its stored token and signs out locally                                      |
 
 ## Contract
 
