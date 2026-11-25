@@ -226,6 +226,36 @@ describe("로그아웃과 액세스 토큰", () => {
     }
   });
 
+  it("AUTH-12 액세스 토큰은 서버 시계로 15분이 지나면 거부한다", async () => {
+    const { api } = await t.signUp();
+
+    t.advanceClock(15 * 60_000 - 1_000);
+    await expect(api.auth.me()).resolves.toMatchObject({ nickname: expect.any(String) });
+
+    t.advanceClock(1_000);
+    await expect(api.auth.me()).rejects.toMatchObject({ code: "UNAUTHORIZED", status: 401 });
+  });
+
+  it("AUTH-12 발급 시각이 서버 시계보다 미래인 액세스 토큰은 거부한다", async () => {
+    const session = await t.client({ kind: "native" }).auth.signup(signupInput);
+    const issuedAt = Math.floor(t.now().getTime() / 1000) + 60;
+    const fromTheFuture = await sign(
+      {
+        sub: session.user.id,
+        aud: "native",
+        iss: "fullstack-monorepo-starter",
+        iat: issuedAt,
+        exp: issuedAt + 15 * 60,
+      },
+      TEST_JWT_SECRET,
+      "HS256",
+    );
+
+    await expect(
+      t.client({ kind: "native", accessToken: fromTheFuture }).auth.me(),
+    ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+  });
+
   it("AUTH-13 다른 클라이언트 종류에서 쓴 액세스 토큰을 거부한다", async () => {
     const session = await t.client({ kind: "web" }).auth.signup(signupInput);
 

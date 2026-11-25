@@ -29,7 +29,12 @@ export const base = implement(contract).$context<RequestContext>();
 async function accessToken(context: RequestContext) {
   const header = context.reqHeaders.get("authorization");
   if (!header?.startsWith("Bearer ")) return null;
-  return verifyAccessToken(header.slice("Bearer ".length), context.clientKind, context.jwtSecret);
+  return verifyAccessToken(
+    header.slice("Bearer ".length),
+    context.clientKind,
+    context.jwtSecret,
+    context.now(),
+  );
 }
 
 /** 이 클라이언트 종류에 맞는 유효한 액세스 토큰이 없으면 호출을 UNAUTHORIZED로 거부한다. */

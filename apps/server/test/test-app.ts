@@ -95,6 +95,8 @@ export function createTestApp() {
     db: database.db,
     client,
     signUp,
+    /** 서버가 보는 현재 시각. 테스트에서 직접 토큰을 만들 때 쓴다. */
+    now: () => now,
     advanceClock(ms: number) {
       now = new Date(now.getTime() + ms);
     },

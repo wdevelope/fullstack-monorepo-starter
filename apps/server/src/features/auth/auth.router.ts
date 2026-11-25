@@ -42,7 +42,12 @@ async function respondWithSession(
   user: PublicUser,
   refreshToken: string,
 ): Promise<Session> {
-  const access = await signAccessToken(user.id, context.clientKind, context.jwtSecret);
+  const access = await signAccessToken(
+    user.id,
+    context.clientKind,
+    context.jwtSecret,
+    context.now(),
+  );
   const session: Session = {
     user,
     accessToken: access.token,
