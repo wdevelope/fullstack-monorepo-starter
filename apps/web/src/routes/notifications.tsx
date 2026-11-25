@@ -11,8 +11,8 @@ import { timeAgo } from "../lib/time.ts";
 const unreadQuery = () => orpc.notifications.unreadCount.queryOptions();
 
 /**
- * Keeps the notification stream open while signed in. Every event carries the unread count, so the
- * badge updates without a request; the list is refetched (on `ready` too, to catch up after a gap).
+ * 로그인한 동안 알림 스트림을 열어 둔다. 모든 이벤트에 읽지 않은 개수가 담겨 있어 요청 없이 배지를
+ * 갱신한다. 목록은 다시 불러온다(끊긴 동안 놓친 알림을 따라잡도록 `ready`에서도).
  */
 function useNotificationStream(userId: string, onNotification: (n: Notification) => void) {
   const notify = useEffectEvent(onNotification);
@@ -70,7 +70,7 @@ export function NotificationBell({ userId }: { userId: string }) {
     <div className="relative">
       <button
         type="button"
-        aria-label={count > 0 ? `Notifications, ${count} unread` : "Notifications"}
+        aria-label={count > 0 ? `알림, 읽지 않음 ${count}개` : "알림"}
         className="relative rounded-lg px-2.5 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800"
         onClick={() => setOpen((value) => !value)}
       >
@@ -88,19 +88,19 @@ export function NotificationBell({ userId }: { userId: string }) {
       {open && (
         <div className="absolute right-0 z-10 mt-2 w-80 rounded-xl border border-zinc-200 bg-white shadow-lg dark:border-zinc-800 dark:bg-zinc-900">
           <div className="flex items-center justify-between border-b border-zinc-200 px-4 py-2 dark:border-zinc-800">
-            <span className="text-sm font-semibold">Notifications</span>
+            <span className="text-sm font-semibold">알림</span>
             <button
               type="button"
               className="text-xs text-indigo-600 hover:underline disabled:text-zinc-400 dark:text-indigo-400"
               disabled={count === 0 || markRead.isPending}
               onClick={() => markRead.mutate({})}
             >
-              Mark all read
+              모두 읽음
             </button>
           </div>
-          {list.isPending && <p className="px-4 py-3 text-sm text-zinc-500">Loading…</p>}
+          {list.isPending && <p className="px-4 py-3 text-sm text-zinc-500">불러오는 중…</p>}
           {list.data?.items.length === 0 && (
-            <p className="px-4 py-6 text-center text-sm text-zinc-500">No notifications yet.</p>
+            <p className="px-4 py-6 text-center text-sm text-zinc-500">아직 알림이 없어요.</p>
           )}
           <ul className="max-h-96 overflow-y-auto">
             {list.data?.items.map((notification) => (

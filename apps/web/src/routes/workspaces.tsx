@@ -16,9 +16,9 @@ import { describeError } from "../lib/errors.ts";
 import { PostList } from "./post-list.tsx";
 
 const roleLabel: Record<WorkspaceRole, string> = {
-  owner: "Owner",
-  admin: "Admin",
-  member: "Member",
+  owner: "소유자",
+  admin: "관리자",
+  member: "멤버",
 };
 
 function RoleBadge({ role }: { role: WorkspaceRole }) {
@@ -51,22 +51,22 @@ export function WorkspaceListPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">Workspaces</h1>
+      <h1 className="text-2xl font-semibold">워크스페이스</h1>
       <p className="text-sm text-zinc-500">
-        Private boards for teams. Only members can see a workspace and its posts.
+        팀을 위한 비공개 게시판이에요. 워크스페이스와 그 글은 멤버만 볼 수 있어요.
       </p>
 
       <Card>
         <form onSubmit={submit} className="flex gap-2">
           <TextInput
-            aria-label="Workspace name"
-            placeholder="New workspace name"
+            aria-label="워크스페이스 이름"
+            placeholder="새 워크스페이스 이름"
             maxLength={WORKSPACE_NAME_MAX}
             value={name}
             onChange={(event) => setName(event.target.value)}
           />
           <Button type="submit" disabled={!parsed.success || create.isPending}>
-            Create
+            만들기
           </Button>
         </form>
         <div className="mt-3">
@@ -75,10 +75,10 @@ export function WorkspaceListPage() {
       </Card>
 
       <ErrorBanner message={workspaces.error ? describeError(workspaces.error) : null} />
-      {workspaces.isPending && <p className="text-sm text-zinc-500">Loading…</p>}
+      {workspaces.isPending && <p className="text-sm text-zinc-500">불러오는 중…</p>}
       {workspaces.data?.items.length === 0 && (
         <p className="py-8 text-center text-sm text-zinc-500">
-          You are not in any workspace yet. Create one, or ask an admin to add you.
+          아직 속한 워크스페이스가 없어요. 새로 만들거나 관리자에게 추가해 달라고 요청해 보세요.
         </p>
       )}
       <ul className="divide-y divide-zinc-200 rounded-xl border border-zinc-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-900">
@@ -105,14 +105,14 @@ export function WorkspacePage() {
   const { workspaceId } = boardRoute.useParams();
   const workspace = useQuery(orpc.workspaces.get.queryOptions({ input: { id: workspaceId } }));
 
-  if (workspace.isPending) return <p className="text-sm text-zinc-500">Loading…</p>;
+  if (workspace.isPending) return <p className="text-sm text-zinc-500">불러오는 중…</p>;
   if (workspace.isError) return <ErrorBanner message={describeError(workspace.error)} />;
   const data = workspace.data;
 
   return (
     <div className="space-y-4">
       <Link to="/workspaces" className="text-sm text-zinc-500 hover:underline">
-        ← Workspaces
+        ← 워크스페이스
       </Link>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
@@ -121,10 +121,10 @@ export function WorkspacePage() {
         </div>
         <div className="flex gap-2">
           <Link to="/workspaces/$workspaceId/members" params={{ workspaceId }}>
-            <Button variant="secondary">Members ({data.members.length})</Button>
+            <Button variant="secondary">멤버 ({data.members.length})</Button>
           </Link>
           <Link to="/posts/new" search={{ workspaceId }}>
-            <Button>New post</Button>
+            <Button>글쓰기</Button>
           </Link>
         </div>
       </div>
@@ -173,7 +173,7 @@ export function WorkspaceMembersPage() {
     orpc.workspaces.delete.mutationOptions({ onSuccess: leaveWorkspace }),
   );
 
-  if (workspace.isPending) return <p className="text-sm text-zinc-500">Loading…</p>;
+  if (workspace.isPending) return <p className="text-sm text-zinc-500">불러오는 중…</p>;
   if (workspace.isError) return <ErrorBanner message={describeError(workspace.error)} />;
   const data = workspace.data;
   const can = workspacePermissions(data.myRole);
@@ -194,7 +194,7 @@ export function WorkspaceMembersPage() {
       >
         ← {data.name}
       </Link>
-      <h1 className="text-2xl font-semibold">Members</h1>
+      <h1 className="text-2xl font-semibold">멤버</h1>
       <ErrorBanner message={error ? describeError(error) : null} />
 
       {can.addMembers && (
@@ -202,13 +202,13 @@ export function WorkspaceMembersPage() {
           <form onSubmit={submit} className="flex gap-2">
             <TextInput
               type="email"
-              aria-label="Email of the person to add"
-              placeholder="Add by email"
+              aria-label="추가할 사람의 이메일"
+              placeholder="이메일로 추가"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
             />
             <Button type="submit" disabled={!emailOk || addMember.isPending}>
-              Add
+              멤버 추가
             </Button>
           </form>
         </Card>
@@ -226,12 +226,12 @@ export function WorkspaceMembersPage() {
             >
               <span className="font-medium">
                 {member.user.nickname}
-                {isSelf && <span className="text-zinc-500"> (you)</span>}
+                {isSelf && <span className="text-zinc-500"> (나)</span>}
               </span>
               <span className="flex items-center gap-2">
                 {can.changeRoles && member.role !== "owner" ? (
                   <select
-                    aria-label={`Role of ${member.user.nickname}`}
+                    aria-label={`${member.user.nickname}님의 역할`}
                     className="rounded-lg border border-zinc-300 bg-white px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
                     value={member.role}
                     disabled={updateRole.isPending}
@@ -243,8 +243,8 @@ export function WorkspaceMembersPage() {
                       })
                     }
                   >
-                    <option value="member">Member</option>
-                    <option value="admin">Admin</option>
+                    <option value="member">멤버</option>
+                    <option value="admin">관리자</option>
                   </select>
                 ) : (
                   <RoleBadge role={member.role} />
@@ -255,14 +255,14 @@ export function WorkspaceMembersPage() {
                     disabled={removeMember.isPending}
                     onClick={() => {
                       const question = isSelf
-                        ? `Leave ${data.name}?`
-                        : `Remove ${member.user.nickname} from ${data.name}?`;
+                        ? `${data.name}에서 나갈까요?`
+                        : `${member.user.nickname}님을 ${data.name}에서 내보낼까요?`;
                       if (confirm(question)) {
                         removeMember.mutate({ workspaceId, userId: member.user.id });
                       }
                     }}
                   >
-                    {isSelf ? "Leave" : "Remove"}
+                    {isSelf ? "나가기" : "내보내기"}
                   </Button>
                 )}
               </span>
@@ -275,19 +275,19 @@ export function WorkspaceMembersPage() {
         <Card>
           <div className="flex items-center justify-between gap-4">
             <p className="text-sm text-zinc-500">
-              Deleting the workspace deletes its posts, comments and likes for everyone.
+              워크스페이스를 삭제하면 모든 멤버의 글, 댓글, 좋아요가 함께 삭제돼요.
             </p>
             <Button
               variant="danger"
               className="shrink-0 whitespace-nowrap"
               disabled={deleteWorkspace.isPending}
               onClick={() => {
-                if (confirm(`Delete ${data.name} and everything in it?`)) {
+                if (confirm(`${data.name} 워크스페이스와 그 안의 모든 내용을 삭제할까요?`)) {
                   deleteWorkspace.mutate({ id: workspaceId });
                 }
               }}
             >
-              Delete workspace
+              워크스페이스 삭제
             </Button>
           </div>
         </Card>

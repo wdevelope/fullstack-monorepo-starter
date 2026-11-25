@@ -8,17 +8,19 @@ import { describeError } from "../lib/errors.ts";
 
 type Fields = { email: string; password: string; nickname: string };
 
-/** Client-side checks use the same Zod schemas as the server, so the rules cannot drift. */
+/** 클라이언트 검사는 서버와 같은 Zod 스키마를 쓴다. 그래서 규칙이 어긋날 수 없다. */
 function validate(fields: Fields, withNickname: boolean) {
   return {
-    email: emailSchema.safeParse(fields.email).success ? undefined : "Enter a valid email.",
+    email: emailSchema.safeParse(fields.email).success
+      ? undefined
+      : "올바른 이메일을 입력해 주세요.",
     password: passwordSchema.safeParse(fields.password).success
       ? undefined
-      : "Use 8 to 128 characters.",
+      : "8~128자로 입력해 주세요.",
     nickname:
       !withNickname || nicknameSchema.safeParse(fields.nickname).success
         ? undefined
-        : "Use 2 to 20 characters.",
+        : "2~20자로 입력해 주세요.",
   };
 }
 
@@ -45,7 +47,7 @@ function AuthForm({ mode }: { mode: "login" | "signup" }) {
     try {
       if (isSignup) await client.signUp(fields);
       else await client.signIn({ email: fields.email, password: fields.password });
-      // "likedByMe" and author-only buttons depend on who is signed in.
+      // "likedByMe"와 작성자 전용 버튼은 누가 로그인했는지에 따라 달라진다.
       await queryClient.invalidateQueries();
       await navigate({ to: redirect });
     } catch (caught) {
@@ -58,9 +60,9 @@ function AuthForm({ mode }: { mode: "login" | "signup" }) {
   return (
     <Card>
       <form onSubmit={submit} className="space-y-4" noValidate>
-        <h1 className="text-xl font-semibold">{isSignup ? "Create an account" : "Sign in"}</h1>
+        <h1 className="text-xl font-semibold">{isSignup ? "회원가입" : "로그인"}</h1>
         <ErrorBanner message={error} />
-        <Field label="Email" error={touched ? errors.email : undefined}>
+        <Field label="이메일" error={touched ? errors.email : undefined}>
           <TextInput
             type="email"
             autoComplete="email"
@@ -69,11 +71,11 @@ function AuthForm({ mode }: { mode: "login" | "signup" }) {
           />
         </Field>
         {isSignup && (
-          <Field label="Nickname" error={touched ? errors.nickname : undefined}>
+          <Field label="닉네임" error={touched ? errors.nickname : undefined}>
             <TextInput autoComplete="nickname" value={fields.nickname} onChange={set("nickname")} />
           </Field>
         )}
-        <Field label="Password" error={touched ? errors.password : undefined}>
+        <Field label="비밀번호" error={touched ? errors.password : undefined}>
           <TextInput
             type="password"
             autoComplete={isSignup ? "new-password" : "current-password"}
@@ -82,16 +84,16 @@ function AuthForm({ mode }: { mode: "login" | "signup" }) {
           />
         </Field>
         <Button type="submit" disabled={pending} className="w-full">
-          {pending ? "Please wait…" : isSignup ? "Sign up" : "Sign in"}
+          {pending ? "잠시만 기다려 주세요…" : isSignup ? "회원가입" : "로그인"}
         </Button>
         <p className="text-center text-sm text-zinc-500">
-          {isSignup ? "Already have an account? " : "New here? "}
+          {isSignup ? "이미 계정이 있나요? " : "처음 오셨나요? "}
           <Link
             to={isSignup ? "/login" : "/signup"}
             search={{ redirect }}
             className="font-medium text-indigo-600 dark:text-indigo-400"
           >
-            {isSignup ? "Sign in" : "Create an account"}
+            {isSignup ? "로그인" : "회원가입"}
           </Link>
         </p>
       </form>

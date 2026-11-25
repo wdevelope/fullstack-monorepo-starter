@@ -11,10 +11,10 @@ export function PostListPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Posts</h1>
+        <h1 className="text-2xl font-semibold">공개 게시판</h1>
         {user && (
           <Link to="/posts/new" search={{ workspaceId: undefined }}>
-            <Button>New post</Button>
+            <Button>글쓰기</Button>
           </Link>
         )}
       </div>
@@ -23,7 +23,7 @@ export function PostListPage() {
   );
 }
 
-/** The public board, or a workspace board when `workspaceId` is given. */
+/** 공개 게시판이다. `workspaceId`를 주면 그 워크스페이스의 게시판이다. */
 export function PostList({ workspaceId }: { workspaceId?: string }) {
   const posts = useInfiniteQuery(
     orpc.posts.list.infiniteOptions({
@@ -37,10 +37,10 @@ export function PostList({ workspaceId }: { workspaceId?: string }) {
   return (
     <div className="space-y-4">
       <ErrorBanner message={posts.error ? describeError(posts.error) : null} />
-      {posts.isPending && <p className="text-sm text-zinc-500">Loading…</p>}
+      {posts.isPending && <p className="text-sm text-zinc-500">불러오는 중…</p>}
       {posts.isSuccess && items.length === 0 && (
         <p className="py-12 text-center text-sm text-zinc-500">
-          No posts yet. Write the first one.
+          아직 글이 없어요. 첫 글을 써 보세요.
         </p>
       )}
 
@@ -57,8 +57,8 @@ export function PostList({ workspaceId }: { workspaceId?: string }) {
                 {post.excerpt}
               </p>
               <p className="mt-2 text-xs text-zinc-500">
-                {post.author.nickname} · {timeAgo(post.createdAt)} · {post.commentCount} comments ·{" "}
-                {post.likeCount} likes
+                {post.author.nickname} · {timeAgo(post.createdAt)} · 댓글 {post.commentCount} ·
+                좋아요 {post.likeCount}
               </p>
             </Link>
           </li>
@@ -72,7 +72,7 @@ export function PostList({ workspaceId }: { workspaceId?: string }) {
           disabled={posts.isFetchingNextPage}
           onClick={() => posts.fetchNextPage()}
         >
-          {posts.isFetchingNextPage ? "Loading…" : "Load more"}
+          {posts.isFetchingNextPage ? "불러오는 중…" : "더 보기"}
         </Button>
       )}
     </div>
