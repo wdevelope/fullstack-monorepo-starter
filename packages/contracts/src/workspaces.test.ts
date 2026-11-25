@@ -15,14 +15,14 @@ function validate(schema: unknown, input: unknown) {
   return standard["~standard"].validate(input) as { value?: unknown; issues?: unknown };
 }
 
-describe("workspace input", () => {
-  it("WS-1 trims the workspace name and rejects blank or long names", () => {
+describe("워크스페이스 입력", () => {
+  it("WS-1 워크스페이스 이름의 앞뒤 공백을 지우고, 비었거나 너무 긴 이름은 거부한다", () => {
     expect(workspaceNameSchema.parse("  Team A ")).toBe("Team A");
     expect(workspaceNameSchema.safeParse("   ").success).toBe(false);
     expect(workspaceNameSchema.safeParse("x".repeat(WORKSPACE_NAME_MAX + 1)).success).toBe(false);
   });
 
-  it("WS-3 normalises the email of the member to add", () => {
+  it("WS-3 더할 멤버의 이메일을 정규화한다", () => {
     const input = workspacesContract.addMember["~orpc"].inputSchema;
     expect(
       validate(input, {
@@ -34,7 +34,7 @@ describe("workspace input", () => {
     });
   });
 
-  it("WS-4 only accepts admin or member as a new role", () => {
+  it("WS-4 새 역할로 admin과 member만 받는다", () => {
     const input = workspacesContract.updateMemberRole["~orpc"].inputSchema;
     const base = {
       workspaceId: "00000000-0000-4000-8000-000000000001",
@@ -44,7 +44,7 @@ describe("workspace input", () => {
     expect(validate(input, { ...base, role: "owner" })).toHaveProperty("issues");
   });
 
-  it("WS-8 lets a post be created in a workspace", () => {
+  it("WS-8 워크스페이스에 글을 쓸 수 있다", () => {
     const input = postsContract.create["~orpc"].inputSchema;
     expect(
       validate(input, {
@@ -61,19 +61,19 @@ describe("workspace input", () => {
   });
 });
 
-describe("workspace permissions shown by clients", () => {
-  it("WS-3 lets the owner and admins add members", () => {
+describe("클라이언트가 보여 주는 워크스페이스 권한", () => {
+  it("WS-3 소유자와 관리자는 멤버를 더할 수 있다", () => {
     expect(workspacePermissions("owner").addMembers).toBe(true);
     expect(workspacePermissions("admin").addMembers).toBe(true);
     expect(workspacePermissions("member").addMembers).toBe(false);
   });
 
-  it("WS-4 lets only the owner change roles", () => {
+  it("WS-4 소유자만 역할을 바꿀 수 있다", () => {
     expect(workspacePermissions("owner").changeRoles).toBe(true);
     expect(workspacePermissions("admin").changeRoles).toBe(false);
   });
 
-  it("WS-5 lets admins remove members only, and the owner anyone but themselves", () => {
+  it("WS-5 관리자는 일반 멤버만, 소유자는 자신을 뺀 누구든 내보낼 수 있다", () => {
     expect(canRemoveMember("admin", { isSelf: false, role: "member" })).toBe(true);
     expect(canRemoveMember("admin", { isSelf: false, role: "admin" })).toBe(false);
     expect(canRemoveMember("admin", { isSelf: false, role: "owner" })).toBe(false);
@@ -81,13 +81,13 @@ describe("workspace permissions shown by clients", () => {
     expect(canRemoveMember("member", { isSelf: false, role: "member" })).toBe(false);
   });
 
-  it("WS-6 lets everyone but the owner leave", () => {
+  it("WS-6 소유자를 뺀 누구나 나갈 수 있다", () => {
     expect(canRemoveMember("member", { isSelf: true, role: "member" })).toBe(true);
     expect(canRemoveMember("admin", { isSelf: true, role: "admin" })).toBe(true);
     expect(canRemoveMember("owner", { isSelf: true, role: "owner" })).toBe(false);
   });
 
-  it("WS-9 lets admins and the owner moderate, and WS-10 only the owner delete", () => {
+  it("WS-9 관리자와 소유자는 모더레이션할 수 있고, WS-10 워크스페이스는 소유자만 지울 수 있다", () => {
     expect(workspacePermissions("admin").moderate).toBe(true);
     expect(workspacePermissions("member").moderate).toBe(false);
     expect(workspacePermissions("owner").deleteWorkspace).toBe(true);
@@ -95,8 +95,8 @@ describe("workspace permissions shown by clients", () => {
   });
 });
 
-describe("notification input", () => {
-  it("NOTI-5 accepts markRead with or without ids", () => {
+describe("알림 입력", () => {
+  it("NOTI-5 markRead는 ids가 있어도 없어도 받는다", () => {
     const input = notificationsContract.markRead["~orpc"].inputSchema;
     expect(validate(input, {})).toEqual({ value: {} });
     expect(validate(input, { ids: ["not-a-uuid"] })).toHaveProperty("issues");

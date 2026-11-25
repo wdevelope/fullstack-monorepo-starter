@@ -21,7 +21,7 @@ export const postSummarySchema = z.object({
   title: z.string(),
   excerpt: z.string(),
   author: authorSchema,
-  /** `null` on the public board. */
+  /** 공개 게시판의 글이면 `null`이다. */
   workspaceId: z.uuid().nullable(),
   createdAt: z.date(),
   commentCount: z.number().int(),
@@ -34,7 +34,7 @@ export const postDetailSchema = z.object({
   title: z.string(),
   body: z.string(),
   author: authorSchema,
-  /** `null` on the public board. */
+  /** 공개 게시판의 글이면 `null`이다. */
   workspaceId: z.uuid().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
@@ -52,9 +52,9 @@ export const postInputSchema = z.object({
 const byId = z.object({ id: z.uuid() });
 const likeState = z.object({ likeCount: z.number().int(), likedByMe: z.boolean() });
 
-// Workspace posts a caller cannot read are NOT_FOUND too, so their existence is not revealed.
-const NOT_FOUND = { status: 404, message: "Not found." } as const;
-const FORBIDDEN = { status: 403, message: "You are not allowed to do this." } as const;
+// 호출자가 읽을 수 없는 워크스페이스 글도 NOT_FOUND로 답해 글이 있는지 드러내지 않는다.
+const NOT_FOUND = { status: 404, message: "요청한 내용을 찾을 수 없어요." } as const;
+const FORBIDDEN = { status: 403, message: "이 작업을 할 권한이 없어요." } as const;
 
 export const postsContract = {
   list: oc
@@ -62,7 +62,7 @@ export const postsContract = {
       z.object({
         cursor: z.string().max(200).optional(),
         limit: z.number().int().min(1).max(50).default(20),
-        /** Lists a workspace board instead of the public one. Members only. */
+        /** 공개 게시판 대신 워크스페이스 게시판을 나열한다. 멤버만 볼 수 있다. */
         workspaceId: z.uuid().optional(),
       }),
     )

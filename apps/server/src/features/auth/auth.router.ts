@@ -16,7 +16,7 @@ import { REFRESH_TOKEN_TTL_MS, signAccessToken } from "./tokens.ts";
 
 const COOKIE_PATH = "/rpc/auth";
 
-/** Web clients keep the refresh token in an HttpOnly cookie; native clients get it in the body. */
+/** 웹 클라이언트는 리프레시 토큰을 HttpOnly 쿠키에 두고, 네이티브 클라이언트는 본문으로 받는다. */
 function setRefreshCookie(context: RequestContext, token: string, maxAgeSeconds: number) {
   context.resHeaders.append(
     "set-cookie",
@@ -30,7 +30,7 @@ function setRefreshCookie(context: RequestContext, token: string, maxAgeSeconds:
   );
 }
 
-/** The cookie is only honoured when the caller declares itself a web client (see AUTH rule 8). */
+/** 호출자가 웹 클라이언트라고 밝힐 때만 쿠키를 인정한다(AUTH 규칙 8 참고). */
 function presentedRefreshToken(context: RequestContext, bodyToken: string | undefined) {
   if (context.clientKind === "native") return bodyToken;
   const cookies = parse(context.reqHeaders.get("cookie") ?? "", REFRESH_COOKIE_NAME);
@@ -55,7 +55,7 @@ async function respondWithSession(
   return { ...session, refreshToken };
 }
 
-/** Made once per process: lets unknown-email logins spend the same time as real ones. */
+/** 프로세스마다 한 번 만든다. 없는 이메일로 로그인해도 실제 로그인과 같은 시간이 걸리게 한다. */
 const dummyHashes = new WeakMap<object, Promise<string>>();
 function dummyHashFor(context: RequestContext) {
   let hash = dummyHashes.get(context.passwords);

@@ -15,7 +15,8 @@ import {
 export const postsRouter = {
   list: base.posts.list.use(optionalUser).handler(async ({ input, context, errors }) => {
     const after = input.cursor ? decodeCursor(input.cursor) : null;
-    if (input.cursor && !after) throw new ORPCError("BAD_REQUEST", { message: "Invalid cursor." });
+    if (input.cursor && !after)
+      throw new ORPCError("BAD_REQUEST", { message: "커서가 올바르지 않아요." });
     const page = await listPosts(context.db, {
       limit: input.limit,
       after,

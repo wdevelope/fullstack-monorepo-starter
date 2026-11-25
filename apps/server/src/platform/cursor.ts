@@ -2,7 +2,7 @@ import * as z from "zod";
 
 const cursorSchema = z.tuple([z.iso.datetime(), z.uuid()]);
 
-/** The cursor is the (created_at, id) of the last item, so new posts never shift later pages. */
+/** 커서는 마지막 항목의 (created_at, id)다. 그래서 새 글이 들어와도 다음 페이지가 밀리지 않는다. */
 export function encodeCursor(item: { createdAt: Date; id: string }): string {
   return Buffer.from(JSON.stringify([item.createdAt.toISOString(), item.id])).toString("base64url");
 }

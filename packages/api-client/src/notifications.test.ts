@@ -22,8 +22,8 @@ const notification = {
 };
 
 /**
- * A fake server from the real contract. Only the latest access token works, like the real one.
- * Each open stream sends `ready`, then whatever `push` sends, until `endStreams` (token expiry).
+ * 실제 계약으로 만든 가짜 서버다. 실제 서버처럼 가장 최근 액세스 토큰만 통한다.
+ * 열린 스트림은 저마다 `ready`를 보내고, `endStreams`(토큰 만료) 전까지 `push`가 보내는 것을 보낸다.
  */
 function createFakeServer() {
   const state = { access: 0, refresh: 0, refreshCalls: 0, streamOpens: 0, failNextFetches: 0 };
@@ -58,7 +58,7 @@ function createFakeServer() {
       list: os.notifications.list.handler(() => ({ items: [], nextCursor: null })),
       unreadCount: os.notifications.unreadCount.handler(() => ({ count: 0 })),
       markRead: os.notifications.markRead.handler(() => ({ unreadCount: 0 })),
-      // Like the real server, the token is checked before the stream opens (a 401 response).
+      // 실제 서버처럼 스트림을 열기 전에 토큰을 확인한다(401 응답).
       stream: os.notifications.stream.handler(async ({ context }) => {
         if (context.headers.get("authorization") !== `Bearer access-${state.access}`) {
           throw new ORPCError("UNAUTHORIZED");
@@ -108,7 +108,7 @@ function createFakeServer() {
     state,
     fetch: fetch as typeof globalThis.fetch,
     push: (event: NotificationEvent) => open.forEach((stream) => stream.push(event)),
-    /** The access token expires: open streams end and the token stops working. */
+    /** 액세스 토큰이 만료된다. 열린 스트림이 끝나고 토큰을 더 쓸 수 없다. */
     expireAccessToken() {
       state.access++;
       open.forEach((stream) => stream.push(null));
@@ -157,7 +157,7 @@ async function until(condition: () => boolean) {
 }
 
 describe("watchNotifications", () => {
-  it("NOTI-6 passes stream events to the handler until stopped", async () => {
+  it("NOTI-6 멈출 때까지 스트림 이벤트를 핸들러에 넘긴다", async () => {
     const { server, events, controller, done } = await setUp();
     await until(() => events.length === 1);
 
@@ -172,7 +172,7 @@ describe("watchNotifications", () => {
     await done;
   });
 
-  it("NOTI-8 refreshes the token and reopens when the stream ends at expiry", async () => {
+  it("NOTI-8 토큰 만료로 스트림이 끝나면 토큰을 리프레시하고 다시 연다", async () => {
     const { server, store, events, controller, done } = await setUp();
     await until(() => events.length === 1);
 
@@ -187,7 +187,7 @@ describe("watchNotifications", () => {
     await done;
   });
 
-  it("NOTI-8 backs off and retries after network errors", async () => {
+  it("NOTI-8 네트워크 오류 뒤에는 간격을 늘려 가며 다시 시도한다", async () => {
     const { server, events, errors, controller, done } = await setUp();
     await until(() => events.length === 1);
 
@@ -200,7 +200,7 @@ describe("watchNotifications", () => {
     await done;
   });
 
-  it("NOTI-8 stops when the session can no longer be refreshed", async () => {
+  it("NOTI-8 세션을 더는 리프레시할 수 없으면 멈춘다", async () => {
     const { server, store, client, events, done } = await setUp();
     await until(() => events.length === 1);
 

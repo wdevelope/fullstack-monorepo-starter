@@ -45,8 +45,8 @@ function secondsUntil(until: Date, now: Date): number {
 }
 
 /**
- * Checks the password and keeps the failure counter. The fifth consecutive failure locks the
- * account; the counter update is a single UPDATE so concurrent attempts cannot skip the lock.
+ * 비밀번호를 확인하고 실패 횟수를 센다. 다섯 번째 연속 실패에 계정을 잠근다. 횟수 갱신은
+ * UPDATE 한 번이므로 동시에 시도해도 잠금을 건너뛸 수 없다.
  */
 export async function attemptLogin(
   db: Database,
@@ -62,7 +62,7 @@ export async function attemptLogin(
     .where(eq(users.email, email));
 
   if (!user) {
-    // Spend the same time as a real check so response times do not reveal which emails exist.
+    // 실제 확인과 같은 시간을 써서, 응답 시간으로 어떤 이메일이 가입했는지 드러나지 않게 한다.
     await passwords.verify(dummyHash, password);
     return { status: "invalid" };
   }
@@ -96,7 +96,7 @@ export async function attemptLogin(
   return { status: "invalid" };
 }
 
-/** Starts a new refresh-token family (one per sign-in) and returns the raw token. */
+/** 새 리프레시 토큰 패밀리(로그인마다 하나)를 시작하고 해시하기 전의 토큰을 돌려준다. */
 export async function startRefreshFamily(db: Database, userId: string, now: Date) {
   const token = generateRefreshToken();
   await db.insert(refreshTokens).values({
@@ -116,8 +116,8 @@ async function revokeFamily(db: Database, familyId: string, now: Date) {
 }
 
 /**
- * Exchanges a refresh token for a new one in the same family. A token that was already used
- * means someone else holds a copy, so the whole family is revoked and both parties must sign in.
+ * 리프레시 토큰을 같은 패밀리의 새 토큰으로 바꾼다. 이미 쓴 토큰이 오면 누군가 사본을 가진
+ * 것이므로 패밀리 전체를 폐기하고, 양쪽 모두 다시 로그인해야 한다.
  */
 export async function rotateRefreshToken(
   db: Database,
@@ -138,7 +138,7 @@ export async function rotateRefreshToken(
 
   return db.transaction(async (tx) => {
     const nextId = randomUUID();
-    // The revoked_at guard makes this the single winner when two requests race with one token.
+    // 두 요청이 같은 토큰으로 경쟁해도 revoked_at 조건 때문에 이 UPDATE는 한쪽만 이긴다.
     const [claimed] = await tx
       .update(refreshTokens)
       .set({ revokedAt: now, replacedById: nextId })
@@ -162,7 +162,7 @@ export async function rotateRefreshToken(
   });
 }
 
-/** Signs out the device that holds this token by revoking its family. Unknown tokens are ignored. */
+/** 이 토큰의 패밀리를 폐기해 토큰을 가진 기기를 로그아웃시킨다. 모르는 토큰은 무시한다. */
 export async function revokeRefreshToken(db: Database, token: string, now: Date) {
   const [current] = await db
     .select({ familyId: refreshTokens.familyId })

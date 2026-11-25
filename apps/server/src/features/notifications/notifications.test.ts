@@ -14,7 +14,7 @@ afterEach(() => {
   for (const controller of openStreams.splice(0)) controller.abort();
 });
 
-/** Opens a stream and waits for `ready`, after which the server is listening for this user. */
+/** 스트림을 열고 `ready`를 기다린다. 그 뒤로는 서버가 이 사용자의 알림을 듣고 있다. */
 async function openStream(api: Api) {
   const controller = new AbortController();
   openStreams.push(controller);
@@ -22,7 +22,7 @@ async function openStream(api: Api) {
   const first = await iterator.next();
   expect(first.value).toMatchObject({ type: "ready" });
 
-  /** The next event, `"ended"` when the stream finished, or `"timeout"` if nothing came. */
+  /** 다음 이벤트다. 스트림이 끝났으면 `"ended"`, 아무것도 오지 않았으면 `"timeout"`이다. */
   async function next(timeoutMs = 2_000): Promise<NotificationEvent | "ended" | "timeout"> {
     let timer: NodeJS.Timeout | undefined;
     const timeout = new Promise<"timeout">((resolve) => {
@@ -38,7 +38,7 @@ async function openStream(api: Api) {
   return { ready: first.value, next };
 }
 
-/** A writes a post; B and C are other users. */
+/** A가 글을 쓴다. B와 C는 다른 사용자다. */
 async function setUp() {
   const a = await t.signUp("alice");
   const b = await t.signUp("bob");
@@ -54,8 +54,8 @@ async function notificationCount(postId: string) {
   return result.rows[0]?.n;
 }
 
-describe("notifications", () => {
-  it("NOTI-1 tells the author about a comment, naming the actor and the post", async () => {
+describe("알림", () => {
+  it("NOTI-1 댓글이 달리면 작성자에게 행동한 사람과 글을 알린다", async () => {
     const { a, b, postId } = await setUp();
     await b.api.comments.create({ postId, body: "secret comment text" });
 
@@ -74,7 +74,7 @@ describe("notifications", () => {
     expect(await a.api.notifications.unreadCount()).toEqual({ count: 1 });
   });
 
-  it("NOTI-1 does not notify an author who can no longer read the workspace post", async () => {
+  it("NOTI-1 워크스페이스 글을 더는 읽을 수 없는 작성자에게는 알리지 않는다", async () => {
     const owner = await t.signUp("owner");
     const writer = await t.signUp("writer");
     const workspace = await owner.api.workspaces.create({ name: "Team" });
@@ -97,7 +97,7 @@ describe("notifications", () => {
     expect(await writer.api.notifications.unreadCount()).toEqual({ count: 0 });
   });
 
-  it("NOTI-2 never notifies people about their own activity", async () => {
+  it("NOTI-2 자기 활동으로는 알림을 보내지 않는다", async () => {
     const { a, postId } = await setUp();
     await a.api.comments.create({ postId, body: "my own comment" });
     await a.api.posts.like({ id: postId });
@@ -106,7 +106,7 @@ describe("notifications", () => {
     expect(await notificationCount(postId)).toBe(0);
   });
 
-  it("NOTI-3 notifies a like once per liker and post, even after unlike and like", async () => {
+  it("NOTI-3 좋아요는 취소했다가 다시 눌러도 누른 사람과 글 한 쌍에 한 번만 알린다", async () => {
     const { a, b, postId } = await setUp();
     await b.api.posts.like({ id: postId });
     await b.api.posts.like({ id: postId });
@@ -117,7 +117,7 @@ describe("notifications", () => {
     expect(items.map((n) => [n.type, n.actor.nickname])).toEqual([["like", "bob"]]);
   });
 
-  it("NOTI-4 lists only the caller's notifications, newest first, with a cursor", async () => {
+  it("NOTI-4 호출자의 알림만 최신순으로 커서와 함께 나열한다", async () => {
     const { a, b, c, postId } = await setUp();
     const { id: carolsPost } = await c.api.posts.create({ title: "Carol's", body: "Body" });
     await b.api.comments.create({ postId, body: "1" });
@@ -142,7 +142,7 @@ describe("notifications", () => {
     });
   });
 
-  it("NOTI-5 marks chosen notifications read, then all, ignoring other users' IDs", async () => {
+  it("NOTI-5 고른 알림을 읽음 처리한 뒤 전부 읽음 처리하고, 다른 사용자의 ID는 무시한다", async () => {
     const { a, b, c, postId } = await setUp();
     const { id: carolsPost } = await c.api.posts.create({ title: "Carol's", body: "Body" });
     for (const body of ["1", "2", "3"]) await b.api.comments.create({ postId, body });
@@ -162,7 +162,7 @@ describe("notifications", () => {
     expect(await c.api.notifications.unreadCount()).toEqual({ count: 1 });
   });
 
-  it("NOTI-6 pushes a notification to the recipient's stream only", async () => {
+  it("NOTI-6 받는 사람의 스트림에만 알림을 밀어 준다", async () => {
     const { a, b, c, postId } = await setUp();
     const aliceStream = await openStream(a.api);
     const carolStream = await openStream(c.api);
@@ -178,7 +178,7 @@ describe("notifications", () => {
     expect(await carolStream.next(500)).toBe("timeout");
   });
 
-  it("NOTI-7 delivers across server instances through PostgreSQL", async () => {
+  it("NOTI-7 PostgreSQL을 거쳐 다른 서버 인스턴스로도 전달한다", async () => {
     const other = createTestApp();
     try {
       await other.ready();
@@ -198,7 +198,7 @@ describe("notifications", () => {
     }
   });
 
-  it("NOTI-8 needs a valid access token and ends when it expires", async () => {
+  it("NOTI-8 유효한 액세스 토큰이 있어야 열리고, 토큰이 만료되면 끝난다", async () => {
     const { a } = await setUp();
     for (const accessToken of [undefined, "not-a-token"]) {
       await expect(
@@ -211,7 +211,7 @@ describe("notifications", () => {
     expect(await stream.next(3_000)).toBe("ended");
   });
 
-  it("NOTI-9 deletes notifications with the post or comment they point at", async () => {
+  it("NOTI-9 알림이 가리키는 글이나 댓글을 지우면 알림도 지워진다", async () => {
     const { a, b, postId } = await setUp();
     const comment = await b.api.comments.create({ postId, body: "to be deleted" });
     await b.api.comments.create({ postId, body: "stays" });

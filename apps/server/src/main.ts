@@ -24,11 +24,11 @@ const app = createHttpApp(
 );
 
 const server = serve({ fetch: app.fetch, port: config.port, hostname: config.host }, (info) => {
-  console.log(`Server listening on http://${info.address}:${info.port}`);
+  console.log(`서버 실행 중: http://${info.address}:${info.port}`);
 });
 
 function shutdown() {
-  // Open notification streams end with the hub, so the server can finish closing.
+  // 열린 알림 스트림은 허브와 함께 끝나므로 서버가 닫기를 마칠 수 있다.
   void notificationHub.close();
   server.close(() => void database.close());
 }

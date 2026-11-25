@@ -11,35 +11,35 @@ import {
 
 export type Api = ContractRouterClient<Contract>;
 
-/** Where native clients keep the refresh token (Keychain/Keystore, Electron safeStorage, ...). */
+/** 네이티브 클라이언트가 리프레시 토큰을 두는 곳이다(Keychain/Keystore, Electron safeStorage 등). */
 export interface RefreshTokenStore {
   get(): Promise<string | null>;
   set(token: string | null): Promise<void>;
 }
 
 export interface ApiClientOptions {
-  /** Base URL of the RPC endpoint, e.g. `http://localhost:3000/rpc`. */
+  /** RPC 엔드포인트의 기본 URL이다. 예: `http://localhost:3000/rpc`. */
   url: string;
   clientKind: ClientKind;
-  /** Required for native clients. Web clients keep the refresh token in an HttpOnly cookie. */
+  /** 네이티브 클라이언트에는 꼭 필요하다. 웹 클라이언트는 리프레시 토큰을 HttpOnly 쿠키에 둔다. */
   refreshTokenStore?: RefreshTokenStore;
   fetch?: typeof globalThis.fetch;
 }
 
 export interface ApiClient {
-  /** Typed client for every procedure. Calls retry once after a silent token refresh. */
+  /** 모든 절차를 부르는 타입 있는 클라이언트다. 호출은 토큰을 조용히 리프레시한 뒤 한 번 다시 시도한다. */
   api: Api;
-  /** The signed-in user, or null. Stable between changes, so it works with useSyncExternalStore. */
+  /** 로그인한 사용자이고, 없으면 null이다. 바뀌기 전까지 같은 값이므로 useSyncExternalStore와 함께 쓸 수 있다. */
   getUser(): User | null;
   subscribe(listener: () => void): () => void;
-  /** Restores a session at startup from the cookie (web) or the stored refresh token (native). */
+  /** 시작할 때 쿠키(웹)나 저장한 리프레시 토큰(네이티브)으로 세션을 복원한다. */
   restore(): Promise<User | null>;
   signUp(input: { email: string; password: string; nickname: string }): Promise<User>;
   signIn(input: { email: string; password: string }): Promise<User>;
   signOut(): Promise<void>;
 }
 
-/** Procedures that create or end a session. Their 401s are answers, not an expired token. */
+/** 세션을 만들거나 끝내는 절차다. 이들의 401은 만료된 토큰이 아니라 그 자체로 응답이다. */
 const SESSION_PROCEDURES = new Set(["auth.signup", "auth.login", "auth.refresh", "auth.logout"]);
 
 function isUnauthorized(error: unknown) {
@@ -53,7 +53,7 @@ function isRejectedRefresh(error: unknown) {
 export function createApiClient(options: ApiClientOptions): ApiClient {
   const { clientKind, refreshTokenStore } = options;
   if (clientKind === "native" && !refreshTokenStore) {
-    throw new Error("Native clients need a refreshTokenStore");
+    throw new Error("네이티브 클라이언트에는 refreshTokenStore가 필요하다");
   }
   const baseFetch = options.fetch ?? globalThis.fetch.bind(globalThis);
 
@@ -68,7 +68,7 @@ export function createApiClient(options: ApiClientOptions): ApiClient {
       [CLIENT_KIND_HEADER]: clientKind,
       ...(accessToken && { authorization: `Bearer ${accessToken}` }),
     }),
-    // Browsers only send the refresh cookie on cross-origin calls when credentials are included.
+    // 브라우저는 credentials를 포함할 때만 교차 출처 호출에 리프레시 쿠키를 보낸다.
     fetch: (request, init) => baseFetch(request, { ...init, credentials: "include" }),
   });
 
@@ -94,9 +94,8 @@ export function createApiClient(options: ApiClientOptions): ApiClient {
   const raw: Api = createORPCClient(transport);
 
   /**
-   * Refreshes at most once at a time: when several calls hit an expired token together, they all
-   * wait for the same refresh. The server treats a reused refresh token as theft, so sending it
-   * twice would sign the user out.
+   * 한 번에 하나만 리프레시한다. 여러 호출이 함께 만료된 토큰을 만나면 모두 같은 리프레시를
+   * 기다린다. 서버는 재사용된 리프레시 토큰을 도난으로 보므로, 두 번 보내면 사용자가 로그아웃된다.
    */
   function refresh(): Promise<boolean> {
     refreshing ??= (async () => {
@@ -154,7 +153,7 @@ export function createApiClient(options: ApiClientOptions): ApiClient {
       try {
         await raw.auth.logout({ refreshToken: stored ?? undefined });
       } finally {
-        // Sign out locally even if the server is unreachable.
+        // 서버에 닿지 않아도 기기에서는 로그아웃한다.
         await clearSession();
       }
     },

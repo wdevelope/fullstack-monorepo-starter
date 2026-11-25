@@ -12,8 +12,8 @@ const likeCount = sql<number>`(SELECT count(*)::int FROM ${postLikes} WHERE ${po
 const commentCount = sql<number>`(SELECT count(*)::int FROM ${comments} WHERE ${comments.postId} = ${posts.id})`;
 
 /**
- * Lists the public board, or a workspace board for its members. Returns null when the viewer
- * is not a member of the workspace (NOT_FOUND to the caller).
+ * 공개 게시판을, 또는 멤버에게는 워크스페이스 게시판을 나열한다. 보는 사람이 그 워크스페이스
+ * 멤버가 아니면 null을 돌려준다(호출자에게는 NOT_FOUND).
  */
 export async function listPosts(
   db: Database,
@@ -53,7 +53,7 @@ export async function listPosts(
     .orderBy(desc(posts.createdAt), desc(posts.id))
     .limit(limit + 1);
 
-  // An empty page is either an empty board or no membership; only the second is NOT_FOUND.
+  // 빈 페이지는 게시판이 비었거나 멤버가 아니라는 뜻이다. 뒤의 경우만 NOT_FOUND다.
   if (rows.length === 0 && workspaceId && !(await isMember(db, workspaceId, viewerId!))) {
     return null;
   }
@@ -96,7 +96,7 @@ export async function getPost(
     .where(and(eq(posts.id, id), canReadPost(viewerId)));
   if (!post) return null;
 
-  // The comments query checks access again, so a member removed in between reads nothing.
+  // 댓글 쿼리도 접근을 다시 확인하므로, 그사이 내보내진 멤버는 아무것도 읽지 못한다.
   const postComments = await db
     .select({ id: comments.id, body: comments.body, author, createdAt: comments.createdAt })
     .from(comments)
@@ -108,7 +108,7 @@ export async function getPost(
   return { ...post, comments: postComments };
 }
 
-/** Whether the post exists and the viewer may read it. Used only to pick NOT_FOUND or FORBIDDEN. */
+/** 글이 있고 보는 사람이 읽을 수 있는지 돌려준다. NOT_FOUND와 FORBIDDEN 중 하나를 고를 때만 쓴다. */
 export async function postReadable(
   db: Executor,
   id: string,
@@ -122,8 +122,8 @@ export async function postReadable(
 }
 
 /**
- * Creates a post on the public board, or in a workspace when the author is a member: the insert
- * selects from the author's membership row, so a non-member inserts nothing. Returns null then.
+ * 공개 게시판에, 또는 작성자가 멤버이면 워크스페이스에 글을 쓴다. INSERT가 작성자의 멤버십
+ * 행에서 SELECT하므로 멤버가 아니면 아무것도 넣지 않고, 그때는 null을 돌려준다.
  */
 export async function createPost(
   db: Database,
@@ -136,7 +136,7 @@ export async function createPost(
       .insert(posts)
       .values({ authorId, title, body })
       .returning({ id: posts.id });
-    if (!row) throw new Error("Insert returned no row");
+    if (!row) throw new Error("INSERT가 행을 돌려주지 않았다");
     return row.id;
   }
   const result = await db.execute<{ id: string }>(sql`
@@ -148,7 +148,7 @@ export async function createPost(
   return result.rows[0]?.id ?? null;
 }
 
-/** Returns false when the post does not exist, cannot be read, or belongs to someone else. */
+/** 글이 없거나, 읽을 수 없거나, 다른 사람의 글이면 false를 돌려준다. */
 export async function updateOwnPost(
   db: Database,
   authorId: string,
@@ -165,8 +165,8 @@ export async function updateOwnPost(
 }
 
 /**
- * The author deletes their post; in a workspace its admins and owner can too (moderation).
- * Comments, likes and notifications go with the post through ON DELETE CASCADE.
+ * 작성자가 자기 글을 지운다. 워크스페이스에서는 그 관리자와 소유자도 지울 수 있다(모더레이션).
+ * 댓글, 좋아요, 알림은 ON DELETE CASCADE로 글과 함께 지워진다.
  */
 export async function deletePost(db: Database, userId: string, id: string): Promise<boolean> {
   const deleted = await db
@@ -182,9 +182,8 @@ export async function deletePost(db: Database, userId: string, id: string): Prom
 }
 
 /**
- * Likes or unlikes in one transaction with the notification. The like is written by a statement
- * that also checks access, so a non-member changes nothing. Returns null when the post is not
- * readable.
+ * 좋아요나 좋아요 취소를 알림과 한 트랜잭션에서 한다. 좋아요는 접근도 확인하는 문으로 쓰므로
+ * 멤버가 아니면 아무것도 바뀌지 않는다. 글을 읽을 수 없으면 null을 돌려준다.
  */
 export async function setLike(db: Database, postId: string, userId: string, liked: boolean) {
   return db.transaction(async (tx) => {

@@ -8,8 +8,8 @@ export const REFRESH_TOKEN_TTL_MS = 14 * 24 * 60 * 60 * 1000;
 const ISSUER = "fullstack-monorepo-starter";
 
 /**
- * The audience is the client kind, so a token issued to the web app is rejected when replayed
- * from a native client and the other way round.
+ * audience가 클라이언트 종류이므로, 웹 앱에 발급한 토큰을 네이티브 클라이언트에서 다시 쓰면
+ * 거부되고 그 반대도 마찬가지다.
  */
 export async function signAccessToken(
   userId: string,
@@ -29,11 +29,11 @@ export async function signAccessToken(
 
 export interface AccessTokenClaims {
   userId: string;
-  /** Long-lived responses such as the notification stream end here. */
+  /** 알림 스트림처럼 오래 이어지는 응답은 이 시각에 끝난다. */
   expiresAt: Date;
 }
 
-/** Returns the claims, or null when the token is missing, malformed, expired or for another audience. */
+/** 클레임을 돌려준다. 토큰이 없거나, 형식이 틀렸거나, 만료됐거나, 다른 audience용이면 null이다. */
 export async function verifyAccessToken(
   token: string,
   clientKind: ClientKind,
@@ -52,7 +52,7 @@ export function generateRefreshToken(): string {
   return randomBytes(32).toString("base64url");
 }
 
-/** Only this hash is stored, so a database leak does not leak usable refresh tokens. */
+/** 이 해시만 저장하므로 데이터베이스가 유출돼도 쓸 수 있는 리프레시 토큰은 새지 않는다. */
 export function hashRefreshToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");
 }

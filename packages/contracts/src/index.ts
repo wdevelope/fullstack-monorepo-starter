@@ -8,7 +8,7 @@ export * from "./community.ts";
 export * from "./notifications.ts";
 export * from "./workspaces.ts";
 
-/** The single API contract shared by the server and every client. */
+/** 서버와 모든 클라이언트가 함께 쓰는 단 하나의 API 계약이다. */
 export const contract = {
   auth: authContract,
   posts: postsContract,

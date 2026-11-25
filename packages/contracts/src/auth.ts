@@ -1,12 +1,12 @@
 import { oc } from "@orpc/contract";
 import * as z from "zod";
 
-/** Which client is calling. It decides how the refresh token travels and which audience the access token carries. */
+/** 호출하는 클라이언트 종류다. 리프레시 토큰을 주고받는 방식과 액세스 토큰의 audience를 정한다. */
 export const CLIENT_KIND_HEADER = "x-client-kind";
 export const clientKindSchema = z.enum(["web", "native"]);
 export type ClientKind = z.infer<typeof clientKindSchema>;
 
-/** Web clients receive the refresh token in this HttpOnly cookie instead of the response body. */
+/** 웹 클라이언트는 리프레시 토큰을 응답 본문 대신 이 HttpOnly 쿠키로 받는다. */
 export const REFRESH_COOKIE_NAME = "refresh_token";
 
 export const emailSchema = z.string().trim().toLowerCase().max(254).pipe(z.email());
@@ -25,28 +25,28 @@ export const sessionSchema = z.object({
   user: userSchema,
   accessToken: z.string(),
   accessTokenExpiresAt: z.date(),
-  /** Only native clients get the refresh token in the body. Web clients get an HttpOnly cookie. */
+  /** 리프레시 토큰은 네이티브 클라이언트만 본문으로 받는다. 웹 클라이언트는 HttpOnly 쿠키로 받는다. */
   refreshToken: z.string().optional(),
 });
 export type Session = z.infer<typeof sessionSchema>;
 
-/** Native clients send the refresh token in the body. Web clients leave it out and rely on the cookie. */
+/** 네이티브 클라이언트는 리프레시 토큰을 본문에 담아 보낸다. 웹 클라이언트는 비워 두고 쿠키에 맡긴다. */
 const refreshTokenInput = z.object({ refreshToken: z.string().min(1).max(200).optional() });
 
 export const authContract = {
   signup: oc
     .input(z.object({ email: emailSchema, password: passwordSchema, nickname: nicknameSchema }))
     .output(sessionSchema)
-    .errors({ EMAIL_TAKEN: { status: 409, message: "This email is already registered." } }),
+    .errors({ EMAIL_TAKEN: { status: 409, message: "이미 가입한 이메일이에요." } }),
 
   login: oc
     .input(z.object({ email: emailSchema, password: z.string().min(1).max(128) }))
     .output(sessionSchema)
     .errors({
-      INVALID_CREDENTIALS: { status: 401, message: "Email or password is incorrect." },
+      INVALID_CREDENTIALS: { status: 401, message: "이메일 또는 비밀번호가 맞지 않아요." },
       ACCOUNT_LOCKED: {
         status: 423,
-        message: "Too many failed attempts. Try again later.",
+        message: "로그인 시도가 너무 많아요. 잠시 후 다시 시도해 주세요.",
         data: z.object({ retryAfterSeconds: z.number().int().positive() }),
       },
     }),
@@ -54,7 +54,7 @@ export const authContract = {
   refresh: oc
     .input(refreshTokenInput)
     .output(sessionSchema)
-    .errors({ INVALID_REFRESH_TOKEN: { status: 401, message: "Please sign in again." } }),
+    .errors({ INVALID_REFRESH_TOKEN: { status: 401, message: "다시 로그인해 주세요." } }),
 
   logout: oc.input(refreshTokenInput).output(z.object({})),
 

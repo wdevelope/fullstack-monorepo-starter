@@ -12,11 +12,11 @@ import {
 
 type Failure = Extract<Result<unknown>, { ok: false }>["error"];
 
-/** Turns a service result into the value or the matching typed error. */
+/** 서비스 결과를 값이나 그에 맞는 타입 있는 오류로 바꾼다. */
 function unwrap<T>(result: Result<T>, errors: Partial<Record<Failure, () => Error>>): T {
   if (result.ok) return result.value;
   const make = errors[result.error];
-  if (!make) throw new Error(`Unexpected workspace error ${result.error}`);
+  if (!make) throw new Error(`예상하지 못한 워크스페이스 오류: ${result.error}`);
   throw make();
 }
 

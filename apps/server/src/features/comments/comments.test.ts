@@ -8,8 +8,8 @@ const t = createTestApp();
 beforeEach(() => t.reset());
 afterAll(() => t.close());
 
-describe("comments", () => {
-  it("COM-9 adds a comment for a signed-in user and rejects missing posts", async () => {
+describe("댓글", () => {
+  it("COM-9 로그인한 사용자의 댓글을 달고, 없는 글이면 거부한다", async () => {
     const { api, session } = await t.signUp("writer");
     const { id: postId } = await api.posts.create({ title: "Post", body: "Body" });
 
@@ -27,7 +27,7 @@ describe("comments", () => {
     ).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 
-  it("COM-10 lets only the comment author delete it", async () => {
+  it("COM-10 댓글은 작성자만 지울 수 있다", async () => {
     const author = await t.signUp();
     const other = await t.signUp();
     const { id: postId } = await author.api.posts.create({ title: "Post", body: "Body" });

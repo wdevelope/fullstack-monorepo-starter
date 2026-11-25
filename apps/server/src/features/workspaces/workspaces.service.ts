@@ -10,9 +10,8 @@ import { users, workspaceMembers, workspaces } from "../../db/schema.ts";
 import type { Database, Executor } from "../../platform/db.ts";
 
 /**
- * Every write below carries the caller's permission as an EXISTS on their membership row in the
- * same statement (WS rule 7). When a write changes nothing, the follow-up lookups only decide
- * which error to report.
+ * 아래의 모든 쓰기는 호출자의 권한을 같은 문 안에서 호출자 멤버십 행에 대한 EXISTS로 확인한다
+ * (WS 규칙 7). 쓰기가 아무것도 바꾸지 않았을 때 뒤따르는 조회는 어떤 오류를 알릴지만 정한다.
  */
 type Failure = "NOT_FOUND" | "FORBIDDEN" | "USER_NOT_FOUND" | "ALREADY_MEMBER";
 export type Result<T> = { ok: true; value: T } | { ok: false; error: Failure };
@@ -20,7 +19,7 @@ export type Result<T> = { ok: true; value: T } | { ok: false; error: Failure };
 const ok = <T>(value: T): Result<T> => ({ ok: true, value });
 const fail = (error: Failure): Result<never> => ({ ok: false, error });
 
-/** The caller holds one of `roles` in the workspace of the row in scope. */
+/** 호출자가 범위 안 행의 워크스페이스에서 `roles` 중 하나를 맡고 있다는 조건이다. */
 function callerHas(workspaceId: SQLValue, userId: string, roles: WorkspaceRole[]) {
   return sql`EXISTS (
     SELECT 1 FROM workspace_members caller
@@ -55,7 +54,7 @@ async function findMember(db: Executor, workspaceId: string, userId: string) {
     .from(workspaceMembers)
     .innerJoin(users, eq(users.id, workspaceMembers.userId))
     .where(and(eq(workspaceMembers.workspaceId, workspaceId), eq(workspaceMembers.userId, userId)));
-  if (!row) throw new Error("Member row missing after write");
+  if (!row) throw new Error("쓰기 뒤에 멤버 행이 없다");
   return row;
 }
 
@@ -66,7 +65,7 @@ export async function createWorkspace(
 ): Promise<WorkspaceSummary> {
   return db.transaction(async (tx) => {
     const [workspace] = await tx.insert(workspaces).values({ name }).returning();
-    if (!workspace) throw new Error("Insert returned no row");
+    if (!workspace) throw new Error("INSERT가 행을 돌려주지 않았다");
     await tx
       .insert(workspaceMembers)
       .values({ workspaceId: workspace.id, userId: ownerId, role: "owner" });
@@ -93,7 +92,7 @@ export async function listWorkspaces(db: Database, userId: string): Promise<Work
     .orderBy(desc(workspaces.createdAt), desc(workspaces.id));
 }
 
-/** The workspace with its members, or null for non-members. */
+/** 워크스페이스와 그 멤버들을 돌려준다. 멤버가 아니면 null이다. */
 export async function getWorkspace(
   db: Database,
   id: string,
@@ -125,7 +124,7 @@ export async function getWorkspace(
   };
 }
 
-/** The owner and admins add an existing account as a `member` (WS rules 2 and 3). */
+/** 소유자와 관리자가 이미 있는 계정을 `member`로 더한다(WS 규칙 2, 3). */
 export async function addMember(
   db: Database,
   workspaceId: string,
@@ -149,7 +148,7 @@ export async function addMember(
   return fail(user ? "ALREADY_MEMBER" : "USER_NOT_FOUND");
 }
 
-/** Only the owner changes roles, and never their own (WS rule 2). */
+/** 역할은 소유자만 바꾸고, 소유자 자신의 역할은 바꾸지 않는다(WS 규칙 2). */
 export async function updateMemberRole(
   db: Database,
   input: { workspaceId: string; userId: string; role: "admin" | "member" },
@@ -177,8 +176,8 @@ export async function updateMemberRole(
 }
 
 /**
- * Anyone but the owner may leave. The owner removes anyone else; admins remove plain members.
- * Their posts and comments stay (WS rule 8).
+ * 소유자가 아니면 누구든 나갈 수 있다. 소유자는 다른 누구든 내보내고, 관리자는 일반 멤버를
+ * 내보낸다. 나간 사람의 글과 댓글은 남는다(WS 규칙 8).
  */
 export async function removeMember(
   db: Database,
@@ -207,7 +206,7 @@ export async function removeMember(
   return fail((await roleOf(db, workspaceId, userId)) ? "FORBIDDEN" : "NOT_FOUND");
 }
 
-/** Memberships, posts, comments, likes and notifications go with it through ON DELETE CASCADE. */
+/** 멤버십, 글, 댓글, 좋아요, 알림이 ON DELETE CASCADE로 함께 지워진다. */
 export async function deleteWorkspace(
   db: Database,
   id: string,

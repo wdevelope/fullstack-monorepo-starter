@@ -11,7 +11,7 @@ export function createHttpApp(deps: Dependencies, options: { corsOrigins: string
   const handler = new RPCHandler(router, {
     interceptors: [
       onError((error) => {
-        // Expected errors (validation, auth, not found) are part of the contract; log only bugs.
+        // 예상한 오류(검증, 인증, 찾을 수 없음)는 계약의 일부이므로 버그만 로그로 남긴다.
         if (!(error instanceof ORPCError) || error.status >= 500) console.error(error);
       }),
     ],
@@ -37,7 +37,7 @@ export function createHttpApp(deps: Dependencies, options: { corsOrigins: string
       prefix: "/rpc",
       context: {
         ...deps,
-        // A missing or unknown header is treated as native, which never reads the cookie.
+        // 헤더가 없거나 모르는 값이면 네이티브로 본다. 네이티브는 쿠키를 읽지 않는다.
         clientKind: kind.success ? kind.data : "native",
         reqHeaders: c.req.raw.headers,
         resHeaders,

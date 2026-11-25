@@ -8,9 +8,9 @@ import { encodeCursor } from "../../platform/cursor.ts";
 import { canReadPost } from "../workspaces/access.ts";
 
 /**
- * Notifies the post's author about a comment or like, inside the caller's transaction (NOTI rule 3).
- * Nothing happens for your own posts, for a repeated like (partial unique index), or when the author
- * can no longer read the post. NOTIFY is transactional: PostgreSQL delivers it only after commit.
+ * 호출자의 트랜잭션 안에서 글 작성자에게 댓글이나 좋아요를 알린다(NOTI 규칙 3). 자기 글이거나,
+ * 반복된 좋아요이거나(부분 고유 인덱스), 작성자가 더는 글을 읽을 수 없으면 아무 일도 없다.
+ * NOTIFY는 트랜잭션을 따르므로 PostgreSQL이 커밋한 뒤에만 전달한다.
  */
 export async function notifyPostAuthor(
   tx: Executor,
@@ -41,7 +41,7 @@ const notificationFields = {
   readAt: notifications.readAt,
 };
 
-/** A recipient only sees notifications about posts they can still read. */
+/** 받는 사람은 아직 읽을 수 있는 글에 대한 알림만 본다. */
 function visibleTo(recipientId: string) {
   return and(eq(notifications.recipientId, recipientId), canReadPost(recipientId));
 }
@@ -73,7 +73,7 @@ export async function listNotifications(
   return { items, nextCursor: rows.length > limit && last ? encodeCursor(last) : null };
 }
 
-/** One notification, only if it belongs to the recipient. */
+/** 알림 하나를 돌려준다. 받는 사람의 알림일 때만 돌려준다. */
 export async function findNotification(
   db: Executor,
   recipientId: string,
@@ -97,7 +97,7 @@ export async function countUnread(db: Executor, recipientId: string): Promise<nu
   return row?.count ?? 0;
 }
 
-/** Without `ids`, marks all. The recipient condition makes other users' IDs a no-op (NOTI rule 5). */
+/** `ids`가 없으면 전부 읽음 처리한다. 받는 사람 조건 때문에 다른 사용자의 ID는 아무것도 바꾸지 않는다(NOTI 규칙 5). */
 export async function markRead(
   db: Executor,
   recipientId: string,

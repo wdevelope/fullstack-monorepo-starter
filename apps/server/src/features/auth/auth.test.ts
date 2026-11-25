@@ -14,8 +14,8 @@ afterAll(() => t.close());
 const credentials = { email: "alice@example.com", password: "password1" };
 const signupInput = { ...credentials, nickname: "alice" };
 
-describe("sign-up", () => {
-  it("AUTH-1 web sign-up sets an HttpOnly refresh cookie and keeps the token out of the body", async () => {
+describe("가입", () => {
+  it("AUTH-1 웹 가입은 HttpOnly 리프레시 쿠키를 설정하고 본문에는 토큰을 넣지 않는다", async () => {
     const jar = new CookieJar();
     const session = await t.client({ kind: "web", jar }).auth.signup(signupInput);
 
@@ -31,7 +31,7 @@ describe("sign-up", () => {
     expect(me.id).toBe(session.user.id);
   });
 
-  it("AUTH-1 native sign-up returns the refresh token in the body and sets no cookie", async () => {
+  it("AUTH-1 네이티브 가입은 본문으로 리프레시 토큰을 돌려주고 쿠키를 설정하지 않는다", async () => {
     const jar = new CookieJar();
     const session = await t.client({ kind: "native", jar }).auth.signup(signupInput);
 
@@ -39,7 +39,7 @@ describe("sign-up", () => {
     expect(jar.received).toEqual([]);
   });
 
-  it("AUTH-2 rejects an email that is already registered, ignoring letter case", async () => {
+  it("AUTH-2 대소문자와 상관없이 이미 가입한 이메일을 거부한다", async () => {
     const api = t.client({ kind: "native" });
     await api.auth.signup(signupInput);
 
@@ -48,19 +48,19 @@ describe("sign-up", () => {
     ).rejects.toMatchObject({ code: "EMAIL_TAKEN", status: 409 });
   });
 
-  it("AUTH-3 rejects invalid input before it reaches the database", async () => {
+  it("AUTH-3 틀린 입력은 데이터베이스에 닿기 전에 거부한다", async () => {
     await expect(
       t.client({ kind: "native" }).auth.signup({ ...signupInput, password: "short" }),
     ).rejects.toMatchObject({ code: "BAD_REQUEST" });
   });
 });
 
-describe("login and lockout", () => {
+describe("로그인과 잠금", () => {
   beforeEach(() => t.client({ kind: "native" }).auth.signup(signupInput));
   const api = () => t.client({ kind: "native" });
   const wrong = () => api().auth.login({ ...credentials, password: "wrong-password" });
 
-  it("AUTH-4 logs in with the right password and resets the failure counter", async () => {
+  it("AUTH-4 맞는 비밀번호로 로그인하고 실패 횟수를 0으로 되돌린다", async () => {
     await expect(wrong()).rejects.toMatchObject({ code: "INVALID_CREDENTIALS" });
     await expect(wrong()).rejects.toMatchObject({ code: "INVALID_CREDENTIALS" });
 
@@ -71,14 +71,14 @@ describe("login and lockout", () => {
     expect(user?.failedLoginCount).toBe(0);
   });
 
-  it("AUTH-5 returns the same error for a wrong password and an unknown email", async () => {
+  it("AUTH-5 틀린 비밀번호와 없는 이메일에 같은 오류를 돌려준다", async () => {
     await expect(wrong()).rejects.toMatchObject({ code: "INVALID_CREDENTIALS", status: 401 });
     await expect(
       api().auth.login({ email: "nobody@example.com", password: "password1" }),
     ).rejects.toMatchObject({ code: "INVALID_CREDENTIALS", status: 401 });
   });
 
-  it("AUTH-6 locks the account on the fifth consecutive failure, even for the right password", async () => {
+  it("AUTH-6 다섯 번째 연속 실패에 계정을 잠그고, 맞는 비밀번호도 받지 않는다", async () => {
     for (let attempt = 1; attempt <= 4; attempt++) {
       await expect(wrong()).rejects.toMatchObject({ code: "INVALID_CREDENTIALS" });
     }
@@ -95,7 +95,7 @@ describe("login and lockout", () => {
     });
   });
 
-  it("AUTH-7 lets the user in again once the 15-minute lock has passed", async () => {
+  it("AUTH-7 15분 잠금이 지나면 다시 로그인된다", async () => {
     for (let attempt = 1; attempt <= 5; attempt++) await wrong().catch(() => {});
 
     t.advanceClock(15 * 60_000);
@@ -104,14 +104,14 @@ describe("login and lockout", () => {
   });
 });
 
-describe("refresh rotation", () => {
+describe("리프레시 토큰 회전", () => {
   async function nativeSession() {
     return t.client({ kind: "native" }).auth.signup(signupInput);
   }
   const refresh = (refreshToken: string) =>
     t.client({ kind: "native" }).auth.refresh({ refreshToken });
 
-  it("AUTH-8 rotates the refresh token and revokes the old one", async () => {
+  it("AUTH-8 리프레시 토큰을 회전하고 옛 토큰을 폐기한다", async () => {
     const first = await nativeSession();
     const second = await refresh(first.refreshToken!);
 
@@ -126,7 +126,7 @@ describe("refresh rotation", () => {
     expect(old?.revokedAt).toBeInstanceOf(Date);
   });
 
-  it("AUTH-8 web refresh reads the cookie and replaces it", async () => {
+  it("AUTH-8 웹 리프레시는 쿠키를 읽고 새 쿠키로 바꾼다", async () => {
     const jar = new CookieJar();
     const web = t.client({ kind: "web", jar });
     await web.auth.signup(signupInput);
@@ -137,7 +137,7 @@ describe("refresh rotation", () => {
     expect(jar.cookies.get(REFRESH_COOKIE_NAME)).not.toBe(before);
   });
 
-  it("AUTH-9 revokes the whole family when a rotated token is reused", async () => {
+  it("AUTH-9 회전한 토큰을 다시 쓰면 패밀리 전체를 폐기한다", async () => {
     const first = await nativeSession();
     const second = await refresh(first.refreshToken!);
 
@@ -149,7 +149,7 @@ describe("refresh rotation", () => {
     });
   });
 
-  it("AUTH-9 lets only one of two concurrent refreshes with the same token succeed", async () => {
+  it("AUTH-9 같은 토큰으로 동시에 리프레시하면 하나만 성공한다", async () => {
     const first = await nativeSession();
     const results = await Promise.allSettled([
       refresh(first.refreshToken!),
@@ -160,7 +160,7 @@ describe("refresh rotation", () => {
     expect(results.filter((r) => r.status === "rejected")).toHaveLength(1);
   });
 
-  it("AUTH-10 rejects an unknown or expired refresh token", async () => {
+  it("AUTH-10 모르거나 만료된 리프레시 토큰을 거부한다", async () => {
     await expect(refresh("not-a-real-token")).rejects.toMatchObject({
       code: "INVALID_REFRESH_TOKEN",
       status: 401,
@@ -173,7 +173,7 @@ describe("refresh rotation", () => {
     });
   });
 
-  it("AUTH-15 ignores the refresh cookie when the web client header is missing", async () => {
+  it("AUTH-15 웹 클라이언트 헤더가 없으면 리프레시 쿠키를 무시한다", async () => {
     const jar = new CookieJar();
     await t.client({ kind: "web", jar }).auth.signup(signupInput);
 
@@ -183,8 +183,8 @@ describe("refresh rotation", () => {
   });
 });
 
-describe("logout and access tokens", () => {
-  it("AUTH-11 web logout revokes the family and clears the cookie", async () => {
+describe("로그아웃과 액세스 토큰", () => {
+  it("AUTH-11 웹 로그아웃은 패밀리를 폐기하고 쿠키를 지운다", async () => {
     const jar = new CookieJar();
     const web = t.client({ kind: "web", jar });
     await web.auth.signup(signupInput);
@@ -199,7 +199,7 @@ describe("logout and access tokens", () => {
     });
   });
 
-  it("AUTH-11 native logout revokes the presented refresh token", async () => {
+  it("AUTH-11 네이티브 로그아웃은 제시한 리프레시 토큰을 폐기한다", async () => {
     const native = t.client({ kind: "native" });
     const session = await native.auth.signup(signupInput);
 
@@ -210,7 +210,7 @@ describe("logout and access tokens", () => {
     );
   });
 
-  it("AUTH-12 rejects protected calls without a valid access token", async () => {
+  it("AUTH-12 유효한 액세스 토큰 없는 보호된 호출을 거부한다", async () => {
     const session = await t.client({ kind: "native" }).auth.signup(signupInput);
     const expired = await sign(
       { sub: session.user.id, aud: "native", iss: "fullstack-monorepo-starter", exp: 1 },
@@ -226,7 +226,7 @@ describe("logout and access tokens", () => {
     }
   });
 
-  it("AUTH-13 rejects an access token used by a different client kind", async () => {
+  it("AUTH-13 다른 클라이언트 종류에서 쓴 액세스 토큰을 거부한다", async () => {
     const session = await t.client({ kind: "web" }).auth.signup(signupInput);
 
     await expect(
