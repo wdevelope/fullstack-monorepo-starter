@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { notificationText } from "../../../shared/notification-text.ts";
 import { Button, ErrorNotice, Muted } from "../../components/ui.tsx";
 import { errorMessage } from "../../lib/errors.ts";
-import { formatDate } from "../../lib/format.ts";
+import { timeAgo } from "../../lib/format.ts";
 import type { Navigate } from "../../lib/navigation.ts";
 import { orpc } from "../../lib/orpc.ts";
 
@@ -96,7 +96,7 @@ export function NotificationsScreen({ navigate }: { navigate: Navigate }) {
                   {notificationText(notification)}
                 </span>
                 <span className="block text-xs text-zinc-500">
-                  {formatDate(notification.createdAt)}
+                  {timeAgo(notification.createdAt)}
                 </span>
               </span>
             </button>

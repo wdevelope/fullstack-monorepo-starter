@@ -3,7 +3,7 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 
 import { Button, ErrorNotice, Muted } from "../../components/ui.tsx";
 import { errorMessage } from "../../lib/errors.ts";
-import { formatDate } from "../../lib/format.ts";
+import { timeAgo } from "../../lib/format.ts";
 import type { Navigate } from "../../lib/navigation.ts";
 import { orpc } from "../../lib/orpc.ts";
 
@@ -58,7 +58,7 @@ export function PostList({ workspaceId, navigate }: { workspaceId?: string; navi
                   {post.excerpt}
                 </p>
                 <p className="mt-3 text-xs text-zinc-500">
-                  {post.author.nickname} · {formatDate(post.createdAt)} · 댓글 {post.commentCount} ·
+                  {post.author.nickname} · {timeAgo(post.createdAt)} · 댓글 {post.commentCount} ·
                   좋아요 {post.likeCount}
                 </p>
               </button>

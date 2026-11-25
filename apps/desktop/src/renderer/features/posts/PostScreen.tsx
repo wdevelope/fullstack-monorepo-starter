@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { Alert, Button, ErrorNotice, Muted } from "../../components/ui.tsx";
 import { errorMessage } from "../../lib/errors.ts";
-import { formatDate } from "../../lib/format.ts";
+import { timeAgo } from "../../lib/format.ts";
 import type { Navigate } from "../../lib/navigation.ts";
 import { orpc } from "../../lib/orpc.ts";
 import { Comments } from "./Comments.tsx";
@@ -89,7 +89,7 @@ export function PostScreen({
       <header className="flex flex-col gap-2">
         <h1 className="text-2xl font-semibold tracking-tight break-words">{data.title}</h1>
         <p className="text-sm text-zinc-500">
-          {data.author.nickname} · {formatDate(data.createdAt)}
+          {data.author.nickname} · {timeAgo(data.createdAt)}
           {data.updatedAt.getTime() !== data.createdAt.getTime() && " · 수정됨"}
         </p>
       </header>
