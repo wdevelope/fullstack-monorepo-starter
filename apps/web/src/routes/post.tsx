@@ -152,8 +152,12 @@ export function PostPage() {
                 </span>
                 {(user?.id === c.author.id || canModerate) && (
                   <button
+                    type="button"
                     className="text-red-600 hover:underline dark:text-red-400"
-                    onClick={() => deleteComment.mutate({ id: c.id })}
+                    disabled={deleteComment.isPending}
+                    onClick={() => {
+                      if (confirm("이 댓글을 삭제할까요?")) deleteComment.mutate({ id: c.id });
+                    }}
                   >
                     삭제
                   </button>

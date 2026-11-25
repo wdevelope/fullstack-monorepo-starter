@@ -58,7 +58,9 @@ export function Comments({
               <Button
                 variant="danger"
                 disabled={remove.isPending && remove.variables.id === comment.id}
-                onClick={() => remove.mutate({ id: comment.id })}
+                onClick={() => {
+                  if (window.confirm("이 댓글을 삭제할까요?")) remove.mutate({ id: comment.id });
+                }}
               >
                 삭제
               </Button>
