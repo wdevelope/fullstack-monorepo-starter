@@ -8,7 +8,7 @@ describe("IPC 오류 전송 형식", () => {
     const original = new ORPCError("ACCOUNT_LOCKED", {
       defined: true,
       status: 423,
-      message: "Too many failed attempts. Try again later.",
+      message: "로그인 시도가 너무 많아요. 잠시 후 다시 시도해 주세요.",
       data: { retryAfterSeconds: 900 },
     });
 
@@ -20,7 +20,7 @@ describe("IPC 오류 전송 형식", () => {
     expect(rebuilt).toMatchObject({
       code: "ACCOUNT_LOCKED",
       status: 423,
-      message: "Too many failed attempts. Try again later.",
+      message: "로그인 시도가 너무 많아요. 잠시 후 다시 시도해 주세요.",
       data: { retryAfterSeconds: 900 },
     });
   });
@@ -74,7 +74,11 @@ describe("IPC 오류 전송 형식", () => {
     const createdAt = new Date("2026-01-01T00:00:00Z");
     const success = await toIpcResult(async () => ({ createdAt }));
     const failure = await toIpcResult(async () => {
-      throw new ORPCError("NOT_FOUND", { defined: true, status: 404, message: "Not found." });
+      throw new ORPCError("NOT_FOUND", {
+        defined: true,
+        status: 404,
+        message: "요청한 내용을 찾을 수 없어요.",
+      });
     });
 
     expect(unwrapIpcResult(structuredClone(success))).toEqual({ createdAt });

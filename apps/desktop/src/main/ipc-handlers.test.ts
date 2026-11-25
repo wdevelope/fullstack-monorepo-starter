@@ -148,7 +148,11 @@ describe("rpc 허용 목록", () => {
   it("DESK-5 서버의 타입 있는 오류는 필드를 그대로 유지해 넘긴다", async () => {
     const { handlers } = fakeApiClient({
       respond: () => {
-        throw new ORPCError("NOT_FOUND", { defined: true, status: 404, message: "Not found." });
+        throw new ORPCError("NOT_FOUND", {
+          defined: true,
+          status: 404,
+          message: "요청한 내용을 찾을 수 없어요.",
+        });
       },
     });
 
@@ -160,7 +164,7 @@ describe("rpc 허용 목록", () => {
         defined: true,
         code: "NOT_FOUND",
         status: 404,
-        message: "Not found.",
+        message: "요청한 내용을 찾을 수 없어요.",
         data: undefined,
       },
     });
