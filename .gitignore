@@ -7,7 +7,7 @@ coverage/
 *.log
 .DS_Store
 
-# Secrets: only example files are committed
+# 비밀값: 예시 파일만 커밋한다
 .env
 .env.*
 !.env.example
@@ -15,13 +15,14 @@ coverage/
 *.p12
 *.key
 
-# App outputs
+# 앱 생성물
 apps/desktop/release/
 .expo/
 apps/mobile/ios/
 apps/mobile/android/
 apps/mobile/expo-env.d.ts
 
-# Claude Code local files
+# Claude Code 로컬 파일
 .claude/settings.local.json
+.claude/guard-exempt.local
 .claude/worktrees/

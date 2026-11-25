@@ -1,25 +1,58 @@
 ---
 name: implement
-description: Implement an approved spec test-first, as one vertical slice from contract to server to clients. Use after the spec skill, or when asked to build a feature whose spec is Approved.
+description: 승인된 명세를 테스트 먼저, 계약 → 서버 → 클라이언트 한 번의 수직 슬라이스로 구현하는 스킬. spec 스킬로 명세가 승인된 뒤, 또는 사용자가 상태가 승인인 명세의 기능을 만들어 달라고 할 때, 명세 시나리오로 버그를 고칠 때 실행한다.
 ---
 
-# Implementing a spec
+# Implement (테스트 먼저, 수직 슬라이스)
 
-Precondition: the spec in `docs/specs/` has **Status: Approved**. If it is Draft, use the `spec` skill first.
+**전제**: `docs/specs/<기능>.md`의 상태가 `승인`이다. `초안`이면 `spec` 스킬로 먼저 승인받는다. 버그 수정이면 그 동작을 정한 시나리오가 있어야 한다.
 
-Work through the slice in this order, in one context (do not split layers between agents):
+한 기능의 레이어는 한 맥락에서 아래 순서로 관통한다. 레이어를 여러 에이전트에 나눠 맡기지 않는다(앱별 화면처럼 계약이 정해진 뒤의 독립된 작업만 나눌 수 있다).
 
-1. **Contract** (`packages/contracts`): add or change procedures, Zod schemas and typed errors. Add input-validation tests.
-2. **Server** (`apps/server`): for each scenario, write the integration test first, titled with its ID (`it("COM-12 ...")`), run it and see it fail, then write the smallest code that passes. Schema changes go in `src/db/schema.ts`, then `pnpm --filter @starter/server db:generate`; never edit a committed migration.
-3. **Clients** (`apps/web`, `apps/desktop`, `apps/mobile`): use the typed client from `@starter/api-client`; never call fetch directly. Reuse the contract's Zod schemas for form validation.
-4. **Finish**: all scenarios pass, set the spec's Status to `Done`, run the checks below, and report what passed and anything you could not verify (for example, running the mobile app on a device).
+## 0. 준비
 
-The edit guard (`.claude/hooks/edit-guard.mjs`) blocks logic edits until a test in the same workspace has changed. For a pure rename or move, write the reason in `.claude/guard-exempt.local` (valid 60 minutes) and mention it in the report.
+- `git status --short`로 기존 변경을 확인하고 건드리지 않는다.
+- 명세의 시나리오 중 이번에 테스트를 써야 할 것(새 것, 바뀐 것)을 목록으로 만든다.
+- 관련 앱별 규칙(`.claude/rules/*.md`)과 결정(`docs/DECISIONS.md`)을 읽는다.
 
-## Checks
+## 1. 계약 (`packages/contracts`)
 
-```bash
-pnpm --filter <package> test        # while iterating
-pnpm --filter <package> typecheck
-pnpm lint && pnpm spec:check && pnpm typecheck && pnpm test   # before you say it is done
-```
+1. 입력 검증 시나리오의 테스트를 먼저 쓴다: `it("BM-3 제목이 비어 있으면 거부한다", ...)`.
+2. 절차·Zod 스키마·타입 있는 오류를 더하고 `src/index.ts`의 `contract`에 등록한다. 오류 메시지는 한국어 해요체.
+3. `pnpm --filter @starter/contracts test && pnpm --filter @starter/contracts typecheck`
+
+## 2. 서버 (`apps/server`)
+
+시나리오마다 다음을 반복한다.
+
+1. **Red**: 통합 테스트를 쓰고(제목은 시나리오 ID로 시작), 돌려서 **기대한 이유로** 실패하는지 본다. 컴파일 오류나 엉뚱한 이유의 실패는 Red가 아니다.
+2. **Green**: 통과시키는 가장 작은 코드를 쓴다. router는 오류 코드만, service는 SQL과 업무 규칙만(`.claude/rules/server.md`).
+3. **Refactor**: 테스트를 초록으로 유지하며 중복만 걷어 낸다.
+
+- 스키마를 바꾸면 `src/db/schema.ts`를 고치고 `pnpm --filter @starter/server db:generate` 후 생성된 SQL을 읽어 확인한다. 커밋된 마이그레이션은 고치지 않는다.
+- 권한·동시성 시나리오는 실제 계정 둘 이상, 실제 동시 요청(`Promise.all`)으로 테스트한다.
+- `pnpm --filter @starter/server test -- <파일 이름 일부>`로 좁혀 돌린다.
+
+## 3. 클라이언트 (`apps/web`, `apps/desktop`, `apps/mobile`)
+
+- `@starter/api-client`의 타입 있는 클라이언트(웹·모바일 `orpc`, 데스크톱 렌더러는 브리지 `orpc`)로만 부른다. `fetch`를 직접 쓰지 않는다.
+- 폼 검증은 계약의 Zod 스키마를 그대로 쓴다.
+- 데스크톱 렌더러에 새 절차를 열면 메인의 허용 목록과 `RendererContract`를 함께 고치고 DESK-1 테스트를 먼저 고친다.
+- 오류 문구·시각 표시처럼 순수 로직이 생기면 그 앱의 `lib/`에 두고 시나리오 ID로 테스트한다. 화면 자체는 단위 테스트하지 않는다.
+- 모든 앱에 넣지 않는 기능이면 명세의 범위에 적힌 대로만 하고, 빠진 앱은 `docs/plans/00-작업목록.md`에 한 줄 더한다.
+
+## 4. 끝내기
+
+1. 명세의 모든 시나리오에 통과하는 테스트가 있으면 상태를 `완료`로 바꾼다. 새 파일이 명세 코드 경로에 다 들어 있는지 본다.
+2. 전역 검증을 돌린다.
+   ```bash
+   pnpm lint && pnpm spec:check && pnpm test:tooling && pnpm typecheck && pnpm test
+   ```
+3. 화면을 바꿨으면 가능한 범위에서 띄워 본다(웹은 Playwright, 다른 포트로). 모바일 실기기·Electron 창처럼 여기서 못 본 것은 보고에 "확인 못 함"으로 적는다.
+4. 보고: 구현한 시나리오 ID, 실행한 검증 명령과 결과(통과 수), 확인 못 한 것, 범위 밖에서 발견해 작업 목록에 더한 것.
+5. 커밋은 사용자가 요청하면 `commit` 스킬로 한다.
+
+## 가드에 막혔을 때
+
+- **명세 먼저**: 새 파일이 명세 코드 경로 밖이다. 이 기능 명세의 코드 경로에 더한다(시나리오가 그대로면 승인 필요 없음).
+- **테스트 먼저**: 같은 워크스페이스의 테스트를 먼저 고친다. 동작이 바뀌지 않는 편집(이름 변경·이동·주석)만 `.claude/guard-exempt.local`에 이유를 적고 진행하며, 보고에 예외를 썼다고 적는다.

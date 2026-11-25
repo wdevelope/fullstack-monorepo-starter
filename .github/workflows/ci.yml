@@ -35,14 +35,15 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - name: Lint (ESLint with import boundaries, Prettier)
+      - name: Lint (ESLint 경계 규칙, Prettier)
         run: pnpm lint
-      - name: Specs are linked to tests
+      - name: 명세 검사 (형식, 시나리오↔테스트, 코드 경로)
         run: pnpm spec:check
-      - name: Harness tests (commit guard, spec check, edit guard, lint rule)
+      - name: 하네스 테스트 (커밋 가드, 명세 검사, 편집 가드, 경계 규칙)
         run: pnpm test:tooling
-      - run: pnpm typecheck
-      - name: Tests (server integration tests run on Postgres)
+      - name: 타입 검사
+        run: pnpm typecheck
+      - name: 테스트 (서버 통합 테스트는 실제 PostgreSQL에서)
         run: pnpm test
-      - name: Build web and desktop
+      - name: 웹·데스크톱 빌드
         run: pnpm --filter @starter/web --filter @starter/desktop build
