@@ -31,3 +31,18 @@ describe("auth.signup 입력", () => {
     expect(parse(input)).toHaveProperty("issues");
   });
 });
+
+describe("요청 횟수 제한 오류", () => {
+  it.each(["signup", "login", "refresh"] as const)(
+    "RATE-2 auth.%s 계약에 TOO_MANY_REQUESTS(429)와 기다릴 초를 담은 오류가 있다",
+    (procedure) => {
+      const error = authContract[procedure]["~orpc"].errorMap.TOO_MANY_REQUESTS;
+      expect(error?.status).toBe(429);
+      const data = error?.data;
+      expect(data?.["~standard"].validate({ retryAfterSeconds: 30 })).toEqual({
+        value: { retryAfterSeconds: 30 },
+      });
+      expect(data?.["~standard"].validate({ retryAfterSeconds: 0 })).toHaveProperty("issues");
+    },
+  );
+});

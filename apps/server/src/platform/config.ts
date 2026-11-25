@@ -10,6 +10,8 @@ const envSchema = z.object({
     .default("http://localhost:5173")
     .transform((value) => value.split(",").map((origin) => origin.trim())),
   COOKIE_SECURE: z.stringbool().default(process.env.NODE_ENV === "production"),
+  // 리버스 프록시 뒤에서만 켠다. 켜면 X-Forwarded-For의 첫 주소를 클라이언트 IP로 믿는다(RATE 규칙 5).
+  TRUST_PROXY: z.stringbool().default(false),
 });
 
 export type Config = ReturnType<typeof readConfig>;
@@ -28,5 +30,6 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env) {
     host: e.HOST,
     corsOrigins: e.CORS_ORIGINS,
     cookieSecure: e.COOKIE_SECURE,
+    trustProxy: e.TRUST_PROXY,
   };
 }

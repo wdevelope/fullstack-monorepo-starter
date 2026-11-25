@@ -1,9 +1,9 @@
 # 명세: 요청 횟수 제한
 
-- **상태:** 초안
+- **상태:** 완료
 - **ID 접두:** RATE
 - **코드 경로:** `apps/server/src/platform/rate-limit.ts`, `apps/server/src/platform/http.ts`, `apps/server/src/platform/config.ts`, `apps/server/src/db/schema.ts`, `apps/server/src/features/auth/`, `packages/contracts/src/auth.ts`, `apps/web/src/lib/errors.ts`, `apps/desktop/src/renderer/lib/errors.ts`, `apps/mobile/src/lib/errors.ts`
-- **승인:**
+- **승인:** 2026-11-25
 
 ## 목적
 
@@ -54,3 +54,5 @@
 ## 변경 기록
 
 시나리오가 바뀔 때마다 한 줄씩 더한다(코드 경로만 바뀐 것은 적지 않는다).
+
+- 2026-11-25: 처음 작성 (RATE-1~10, 사용자 승인)

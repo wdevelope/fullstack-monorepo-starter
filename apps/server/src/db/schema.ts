@@ -152,4 +152,14 @@ export const notifications = pgTable(
 );
 
 /** 통합 테스트가 케이스마다 비우는 테이블이다. 자식 테이블이 먼저 온다. */
-export const allTables = sql`notifications, post_likes, comments, posts, workspace_members, workspaces, refresh_tokens, users`;
+/**
+ * 요청 횟수 제한의 카운터(RATE 규칙 1·3). 키는 `<절차>:<IP>`이고, 창이 지나면 같은 행을 새 창으로
+ * 다시 시작하므로 키마다 한 행만 남는다.
+ */
+export const rateLimitBuckets = pgTable("rate_limit_buckets", {
+  key: text().primaryKey(),
+  windowStartedAt: timestamp(ts).notNull(),
+  count: integer().notNull(),
+});
+
+export const allTables = sql`rate_limit_buckets, notifications, post_likes, comments, posts, workspace_members, workspaces, refresh_tokens, users`;

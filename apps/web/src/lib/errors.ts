@@ -1,5 +1,10 @@
 import { ORPCError } from "@orpc/client";
 
+/** 기다릴 시간. 1분 미만은 초, 그 이상은 분(올림)이다. */
+function waitText(seconds: number): string {
+  return seconds < 60 ? `${seconds}초` : `${Math.ceil(seconds / 60)}분`;
+}
+
 /** API 오류를 사용자에게 보일 문장으로 바꾼다. 계약에 정의된 타입 있는 오류는 따로 문구를 정한다. */
 export function describeError(error: unknown): string {
   if (!(error instanceof ORPCError))
@@ -10,6 +15,11 @@ export function describeError(error: unknown): string {
       const seconds = (error.data as { retryAfterSeconds?: number } | undefined)?.retryAfterSeconds;
       const minutes = Math.max(1, Math.ceil((seconds ?? 60) / 60));
       return `로그인 시도가 너무 많아요. ${minutes}분 뒤에 다시 시도해 주세요.`;
+    }
+    case "TOO_MANY_REQUESTS": {
+      const seconds = (error.data as { retryAfterSeconds?: number } | undefined)?.retryAfterSeconds;
+      if (seconds === undefined) return error.message;
+      return `요청이 너무 많아요. ${waitText(seconds)} 뒤에 다시 시도해 주세요.`;
     }
     case "BAD_REQUEST":
       return "입력한 내용을 다시 확인해 주세요.";

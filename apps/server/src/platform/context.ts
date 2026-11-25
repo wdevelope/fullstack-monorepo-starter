@@ -20,6 +20,8 @@ export interface Dependencies {
 /** 모든 절차가 받는 컨텍스트다. 의존성에 이 요청의 정보를 더한 것이다. */
 export interface RequestContext extends Dependencies {
   clientKind: ClientKind;
+  /** 요청 횟수 제한이 세는 클라이언트 IP(RATE 규칙 5). */
+  clientIp: string;
   reqHeaders: Headers;
   resHeaders: Headers;
 }

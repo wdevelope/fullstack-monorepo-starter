@@ -24,13 +24,14 @@ export default defineConfig({
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: [
     {
-      // 테스트 DB에 마이그레이션을 적용한 뒤 실제 API 서버를 띄운다.
-      command: "node src/migrate-command.ts && node src/main.ts",
+      // 테스트 DB에 마이그레이션을 적용하고 요청 횟수 카운터를 비운 뒤 실제 API 서버를 띄운다.
+      command: "node src/migrate-command.ts && node test/reset-rate-limits.ts && node src/main.ts",
       cwd: "../server",
       url: `http://127.0.0.1:${API_PORT}/health`,
       reuseExistingServer: false,
       env: {
         DATABASE_URL: databaseUrl,
+        TEST_DATABASE_URL: databaseUrl,
         JWT_SECRET: "e2e-only-signing-key-not-used-anywhere-else",
         PORT: String(API_PORT),
         HOST: "127.0.0.1",
