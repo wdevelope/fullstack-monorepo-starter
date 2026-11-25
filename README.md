@@ -85,7 +85,7 @@ flowchart LR
 it("AUTH-9 이미 회전한 리프레시 토큰이 다시 오면 패밀리 전체를 폐기한다", async () => { ... });
 ```
 
-명세 6개, 시나리오 70개가 모두 테스트와 연결돼 있습니다: 인증 `AUTH-1~20`, 커뮤니티 `COM-1~11`, 워크스페이스 `WS-1~11`, 알림 `NOTI-1~9`, 데스크톱 보안 `DESK-1~15`, 공통 기반 `PLAT-1~4`.
+명세 6개, 시나리오 72개가 모두 테스트와 연결돼 있습니다: 인증 `AUTH-1~20`, 커뮤니티 `COM-1~11`, 워크스페이스 `WS-1~11`, 알림 `NOTI-1~10`, 데스크톱 보안 `DESK-1~15`, 공통 기반 `PLAT-1~5`. 핵심 흐름(가입 AUTH-1, 글쓰기 COM-5, 두 사용자 사이의 실시간 알림 NOTI-6)은 CI에서 실제 서버·DB·브라우저로 도는 Playwright E2E로도 확인합니다([`apps/web/e2e`](apps/web/e2e)).
 
 ## 아키텍처
 
@@ -214,6 +214,7 @@ pnpm spec:check    # 명세 ↔ 테스트 ↔ 코드 경로
 pnpm test:tooling  # 가드 자체의 테스트
 pnpm typecheck
 pnpm test          # 서버 테스트는 PostgreSQL이 필요하다(TEST_DATABASE_URL)
+pnpm --filter @starter/web test:e2e   # 브라우저 E2E: 서버·웹을 띄워 가입 → 글쓰기 → 실시간 알림까지 확인
 ```
 
 ## 프로젝트 구조

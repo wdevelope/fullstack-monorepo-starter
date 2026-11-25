@@ -26,3 +26,7 @@ apps/mobile/expo-env.d.ts
 .claude/settings.local.json
 .claude/guard-exempt.local
 .claude/worktrees/
+
+# Playwright E2E 결과물
+apps/web/test-results/
+apps/web/playwright-report/

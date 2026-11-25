@@ -48,7 +48,7 @@ description: 승인된 명세를 테스트 먼저, 계약 → 서버 → 클라�
    ```bash
    pnpm lint && pnpm spec:check && pnpm test:tooling && pnpm typecheck && pnpm test
    ```
-3. 화면을 바꿨으면 가능한 범위에서 띄워 본다(웹은 Playwright, 다른 포트로). 모바일 실기기·Electron 창처럼 여기서 못 본 것은 보고에 "확인 못 함"으로 적는다.
+3. 화면 흐름을 바꿨으면 `pnpm --filter @starter/web test:e2e`를 돌리고, 새 흐름이면 `apps/web/e2e/`에 시나리오 ID로 시작하는 E2E를 더한다. 모바일 실기기·Electron 창처럼 여기서 못 본 것은 보고에 "확인 못 함"으로 적는다.
 4. 보고: 구현한 시나리오 ID, 실행한 검증 명령과 결과(통과 수), 확인 못 한 것, 범위 밖에서 발견해 작업 목록에 더한 것.
 5. 커밋은 사용자가 요청하면 `commit` 스킬로 한다.
 
