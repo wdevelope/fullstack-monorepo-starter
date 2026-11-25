@@ -91,12 +91,14 @@ function HeaderActions() {
       void refetch();
     }, [refetch]),
   );
-  const badge = formatBadge(unread.data?.count ?? 0);
+  const count = unread.data?.count ?? 0;
+  const badge = formatBadge(count);
   return (
     <View className="flex-row items-center gap-4">
       <TextButton title="워크스페이스" onPress={() => router.push("/workspaces")} />
       <TextButton
         title={badge ? `🔔 ${badge}` : "🔔"}
+        accessibilityLabel={count > 0 ? `알림, 읽지 않음 ${count}개` : "알림"}
         onPress={() => router.push("/notifications")}
       />
       <TextButton title="글쓰기" onPress={() => router.push("/posts/new")} />

@@ -104,6 +104,7 @@ export function PostPage() {
           <footer className="flex items-center gap-2 pt-2">
             <Button
               variant="secondary"
+              aria-pressed={data.likedByMe}
               disabled={!user || like.isPending || unlike.isPending}
               title={user ? undefined : "로그인하면 좋아요를 누를 수 있어요"}
               onClick={() => (data.likedByMe ? unlike : like).mutate({ id: postId })}
