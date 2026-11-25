@@ -3,9 +3,10 @@ import { router, Stack, useLocalSearchParams } from "expo-router";
 import { ActivityIndicator, FlatList, Text } from "react-native";
 
 import { TextButton } from "../../src/components/button";
-import { ErrorView, LoadingView } from "../../src/components/feedback";
+import { ErrorView, ListFooter, LoadingView } from "../../src/components/feedback";
 import { orpc } from "../../src/lib/api";
 import { roleLabel } from "../../src/lib/format";
+import { shouldLoadMore, showsLoadError } from "../../src/lib/pagination";
 import { PostRow, Separator } from "../../src/posts/post-row";
 
 /** 워크스페이스 게시판. 멤버만 볼 수 있고, 그 밖의 사람은 서버에서 NOT_FOUND를 받는다. */
@@ -24,6 +25,9 @@ export default function WorkspaceScreen() {
   if (workspace.isPending) return <LoadingView />;
   if (workspace.isError) {
     return <ErrorView error={workspace.error} onRetry={() => void workspace.refetch()} />;
+  }
+  if (showsLoadError(posts)) {
+    return <ErrorView error={posts.error} onRetry={() => void posts.refetch()} />;
   }
 
   return (
@@ -59,9 +63,17 @@ export default function WorkspaceScreen() {
             </Text>
           )
         }
+        ListFooterComponent={
+          <ListFooter
+            loading={posts.isFetchingNextPage}
+            failed={posts.isFetchNextPageError}
+            onRetry={() => void posts.fetchNextPage()}
+          />
+        }
         onEndReached={() => {
-          if (posts.hasNextPage && !posts.isFetchingNextPage) void posts.fetchNextPage();
+          if (shouldLoadMore(posts)) void posts.fetchNextPage();
         }}
+        onEndReachedThreshold={0.5}
       />
     </>
   );

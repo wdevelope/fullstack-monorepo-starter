@@ -30,7 +30,9 @@ paths:
 ## 테스트
 
 - 화면은 단위 테스트하지 않는다. 순수 로직(`src/lib/`의 오류 문구, 시간 표시, 알림 문구)만 Vitest로 테스트한다.
-- 화면을 바꾸면 `pnpm --filter @starter/web build`로 타입·번들을 확인하고, 가능하면 Playwright로 해당 화면을 띄워 본다(에이전트는 5174처럼 다른 포트로).
+- 사용자 흐름은 `e2e/`의 Playwright 테스트(`pnpm --filter @starter/web test:e2e`)가 실제 서버·DB·브라우저로 확인한다. 설정(`playwright.config.ts`)이 테스트 DB에 마이그레이션한 서버(3100)와 웹(5174)을 직접 띄운다. 테스트 제목은 시나리오 ID로 시작하고 CI의 `e2e` 잡에서 돈다.
+- E2E 셀렉터는 역할과 이름(`getByRole`, `getByLabel`)으로 찾는다. 화면 문구를 바꾸면 E2E도 함께 고친다.
+- `e2e/`는 Vitest가 집지 않게 `vitest.config.ts`에서 뺐고, 타입 검사는 `e2e/tsconfig.json`(Node 타입)으로 따로 한다.
 
 ## 함정
 

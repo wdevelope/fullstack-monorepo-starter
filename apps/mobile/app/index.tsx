@@ -5,9 +5,10 @@ import { ActivityIndicator, FlatList, RefreshControl, Text, View } from "react-n
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button, TextButton } from "../src/components/button";
-import { ErrorView } from "../src/components/feedback";
+import { ErrorView, ListFooter } from "../src/components/feedback";
 import { client, orpc } from "../src/lib/api";
 import { formatBadge } from "../src/lib/format";
+import { shouldLoadMore, showsLoadError } from "../src/lib/pagination";
 import { PostRow, Separator } from "../src/posts/post-row";
 import { useUser } from "../src/session/use-user";
 
@@ -33,9 +34,7 @@ export default function PostListScreen() {
   }
 
   function loadMore() {
-    if (posts.hasNextPage && !posts.isFetchingNextPage && !posts.isFetchNextPageError) {
-      void posts.fetchNextPage();
-    }
+    if (shouldLoadMore(posts)) void posts.fetchNextPage();
   }
 
   return (
@@ -50,7 +49,7 @@ export default function PostListScreen() {
             ),
         }}
       />
-      {posts.isError && !posts.data ? (
+      {showsLoadError(posts) ? (
         <ErrorView error={posts.error} onRetry={() => void posts.refetch()} />
       ) : (
         <FlatList
@@ -92,12 +91,14 @@ function HeaderActions() {
       void refetch();
     }, [refetch]),
   );
-  const badge = formatBadge(unread.data?.count ?? 0);
+  const count = unread.data?.count ?? 0;
+  const badge = formatBadge(count);
   return (
     <View className="flex-row items-center gap-4">
       <TextButton title="워크스페이스" onPress={() => router.push("/workspaces")} />
       <TextButton
         title={badge ? `🔔 ${badge}` : "🔔"}
+        accessibilityLabel={count > 0 ? `알림, 읽지 않음 ${count}개` : "알림"}
         onPress={() => router.push("/notifications")}
       />
       <TextButton title="글쓰기" onPress={() => router.push("/posts/new")} />
@@ -136,25 +137,6 @@ function EmptyState({ signedIn }: { signedIn: boolean }) {
         compact
         onPress={() => router.push(signedIn ? "/posts/new" : "/sign-in")}
       />
-    </View>
-  );
-}
-
-function ListFooter({
-  loading,
-  failed,
-  onRetry,
-}: {
-  loading: boolean;
-  failed: boolean;
-  onRetry: () => void;
-}) {
-  if (loading) return <ActivityIndicator className="my-6" color="#737373" />;
-  if (!failed) return null;
-  return (
-    <View className="items-center gap-2 py-6">
-      <Text className="text-sm text-neutral-500">글을 더 불러오지 못했어요.</Text>
-      <TextButton title="다시 시도" onPress={onRetry} />
     </View>
   );
 }

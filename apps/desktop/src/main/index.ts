@@ -39,7 +39,7 @@ function createWindow() {
     minWidth: 640,
     minHeight: 480,
     show: false,
-    title: "풀스택 스타터",
+    title: "커뮤니티",
     backgroundColor: nativeTheme.shouldUseDarkColors ? "#09090b" : "#fafafa",
     webPreferences: {
       preload: join(import.meta.dirname, "../preload/index.cjs"),

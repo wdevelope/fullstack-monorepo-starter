@@ -21,6 +21,12 @@ export function errorMessage(error: unknown): string {
           ? `로그인 시도가 너무 많아요. ${formatWait(seconds)} 뒤에 다시 시도해 주세요.`
           : "로그인 시도가 너무 많아요. 잠시 후 다시 시도해 주세요.";
       }
+      case "TOO_MANY_REQUESTS": {
+        const seconds = retryAfterSeconds(error.data);
+        return seconds
+          ? `요청이 너무 많아요. ${formatWait(seconds)} 뒤에 다시 시도해 주세요.`
+          : "요청이 너무 많아요. 잠시 후 다시 시도해 주세요.";
+      }
       case "EMAIL_TAKEN":
         return "이미 가입한 이메일이에요. 로그인해 주세요.";
       case "BAD_REQUEST":

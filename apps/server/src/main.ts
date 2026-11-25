@@ -20,7 +20,7 @@ const app = createHttpApp(
     cookieSecure: config.cookieSecure,
     notificationHub,
   },
-  { corsOrigins: config.corsOrigins },
+  { corsOrigins: config.corsOrigins, trustProxy: config.trustProxy },
 );
 
 const server = serve({ fetch: app.fetch, port: config.port, hostname: config.host }, (info) => {

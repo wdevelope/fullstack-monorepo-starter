@@ -31,7 +31,7 @@ export const notificationsRouter = {
    * 세션은 토큰 수명 안에 알림을 그만 받는다. 클라이언트는 다시 연결한다.
    */
   stream: base.notifications.stream.use(requireUser).handler(async function* ({ context, signal }) {
-    const expiresIn = Math.max(0, context.accessTokenExpiresAt.getTime() - Date.now());
+    const expiresIn = Math.max(0, context.accessTokenExpiresAt.getTime() - context.now().getTime());
     const until = AbortSignal.any([AbortSignal.timeout(expiresIn), ...(signal ? [signal] : [])]);
     // `ready`보다 먼저 구독해서, `ready`를 본 클라이언트가 그 뒤의 것을 놓치지 않게 한다.
     const ids = context.notificationHub.subscribe(context.userId, until);

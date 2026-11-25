@@ -6,8 +6,9 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "typecheck": "tsc",
-    "test": "vitest run"
+    "typecheck": "tsc && tsc -p e2e",
+    "test": "vitest run",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@orpc/client": "catalog:",
@@ -21,9 +22,11 @@
     "react-dom": "catalog:"
   },
   "devDependencies": {
+    "@playwright/test": "1.63.0",
     "@tailwindcss/vite": "4.3.3",
     "@testing-library/dom": "catalog:",
     "@testing-library/react": "catalog:",
+    "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "@vitejs/plugin-react": "6.1.2",

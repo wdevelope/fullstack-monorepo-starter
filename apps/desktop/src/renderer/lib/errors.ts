@@ -49,6 +49,12 @@ export function errorMessage(error: unknown): string {
       const minutes = Math.ceil(seconds / 60);
       return `로그인 시도가 너무 많아요. ${minutes}분 뒤에 다시 시도해 주세요.`;
     }
+    case "TOO_MANY_REQUESTS": {
+      const seconds = retryAfterSeconds(error.data);
+      if (seconds === null) return error.message;
+      const wait = seconds < 60 ? `${seconds}초` : `${Math.ceil(seconds / 60)}분`;
+      return `요청이 너무 많아요. ${wait} 뒤에 다시 시도해 주세요.`;
+    }
     case "BAD_REQUEST":
       return issuesOf(error).length > 0 ? "입력한 내용을 다시 확인해 주세요." : error.message;
     case "UNAUTHORIZED":

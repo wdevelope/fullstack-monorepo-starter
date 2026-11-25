@@ -39,6 +39,12 @@ interface ClientOptions {
   kind: ClientKind | null;
   accessToken?: string;
   jar?: CookieJar;
+  /** 연결의 원격 주소(요청 횟수 제한이 세는 IP). */
+  ip?: string;
+  /** 더 보낼 요청 헤더(예: X-Forwarded-For). */
+  headers?: Record<string, string>;
+  /** 응답마다 불린다. 상태 코드나 헤더를 확인할 때 쓴다. */
+  onResponse?: (response: Response) => void;
 }
 
 /**
@@ -46,7 +52,7 @@ interface ClientOptions {
  * 호출은 `app.fetch`를 거치므로 라우팅, CORS, 쿠키, 검증이 모두 실제와 같다.
  * 테스트 앱마다 서버 인스턴스처럼 자기 알림 허브(자기 LISTEN 연결)를 가진다.
  */
-export function createTestApp() {
+export function createTestApp({ trustProxy = false }: { trustProxy?: boolean } = {}) {
   let now = new Date();
   const database = createDatabase(testDatabaseUrl());
   const notificationHub = createNotificationHub(testDatabaseUrl());
@@ -59,20 +65,26 @@ export function createTestApp() {
       cookieSecure: true,
       notificationHub,
     },
-    { corsOrigins: ["http://localhost:5173"] },
+    { corsOrigins: ["http://localhost:5173"], trustProxy },
   );
 
-  function client({ kind, accessToken, jar }: ClientOptions): Api {
+  let clients = 0;
+  function client({ kind, accessToken, jar, ip, headers, onResponse }: ClientOptions): Api {
+    // 연결 주소. 주지 않으면 클라이언트마다 다른 주소라 요청 횟수 제한이 다른 테스트에 끼어들지 않는다.
+    const remoteAddress = ip ?? `198.18.${Math.floor(++clients / 256)}.${clients % 256}`;
     const link = new RPCLink({
       url: "http://localhost/rpc",
       headers: () => ({
         ...(kind && { [CLIENT_KIND_HEADER]: kind }),
         ...(accessToken && { authorization: `Bearer ${accessToken}` }),
         ...(jar && jar.cookies.size > 0 && { cookie: jar.header() }),
+        ...headers,
       }),
       fetch: async (request) => {
-        const response = await app.fetch(request);
+        // @hono/node-server가 넘기는 env처럼 연결의 원격 주소를 준다.
+        const response = await app.fetch(request, { incoming: { socket: { remoteAddress } } });
         jar?.store(response.headers.getSetCookie());
+        onResponse?.(response);
         return response;
       },
     });
@@ -95,6 +107,8 @@ export function createTestApp() {
     db: database.db,
     client,
     signUp,
+    /** 서버가 보는 현재 시각. 테스트에서 직접 토큰을 만들 때 쓴다. */
+    now: () => now,
     advanceClock(ms: number) {
       now = new Date(now.getTime() + ms);
     },

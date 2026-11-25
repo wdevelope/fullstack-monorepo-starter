@@ -18,7 +18,7 @@ export function Layout() {
     <div className="mx-auto min-h-screen max-w-2xl px-4 pb-16">
       <header className="flex items-center justify-between py-6">
         <Link to="/" className="text-lg font-semibold tracking-tight">
-          스타터 게시판
+          커뮤니티
         </Link>
         <nav className="flex items-center gap-2 text-sm">
           {user ? (

@@ -2,6 +2,7 @@ import { ORPCError } from "@orpc/server";
 import { REFRESH_COOKIE_NAME, type Session } from "@starter/contracts";
 import { parse, serialize } from "hono/utils/cookie";
 
+import { checkRateLimit } from "../../platform/rate-limit.ts";
 import { base, requireUser, type RequestContext } from "../../platform/context.ts";
 import {
   attemptLogin,
@@ -42,7 +43,12 @@ async function respondWithSession(
   user: PublicUser,
   refreshToken: string,
 ): Promise<Session> {
-  const access = await signAccessToken(user.id, context.clientKind, context.jwtSecret);
+  const access = await signAccessToken(
+    user.id,
+    context.clientKind,
+    context.jwtSecret,
+    context.now(),
+  );
   const session: Session = {
     user,
     accessToken: access.token,
@@ -68,6 +74,8 @@ function dummyHashFor(context: RequestContext) {
 
 export const authRouter = {
   signup: base.auth.signup.handler(async ({ input, context, errors }) => {
+    const retryAfterSeconds = await checkRateLimit(context, "signup");
+    if (retryAfterSeconds) throw errors.TOO_MANY_REQUESTS({ data: { retryAfterSeconds } });
     const user = await createUser(context.db, {
       email: input.email,
       nickname: input.nickname,
@@ -79,6 +87,9 @@ export const authRouter = {
   }),
 
   login: base.auth.login.handler(async ({ input, context, errors }) => {
+    // 비밀번호 확인과 계정 실패 횟수보다 먼저 거부한다(RATE 규칙 2).
+    const retryAfterSeconds = await checkRateLimit(context, "login");
+    if (retryAfterSeconds) throw errors.TOO_MANY_REQUESTS({ data: { retryAfterSeconds } });
     const now = context.now();
     const result = await attemptLogin(
       context.db,
@@ -97,6 +108,8 @@ export const authRouter = {
   }),
 
   refresh: base.auth.refresh.handler(async ({ input, context, errors }) => {
+    const retryAfterSeconds = await checkRateLimit(context, "refresh");
+    if (retryAfterSeconds) throw errors.TOO_MANY_REQUESTS({ data: { retryAfterSeconds } });
     const presented = presentedRefreshToken(context, input.refreshToken);
     const rotated = presented && (await rotateRefreshToken(context.db, presented, context.now()));
     const user = rotated && (await findUser(context.db, rotated.userId));

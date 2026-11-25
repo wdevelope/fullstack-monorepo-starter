@@ -95,6 +95,7 @@ pnpm --filter <패키지> test -- <파일 이름 일부>   # 테스트 하나만
 pnpm --filter <패키지> typecheck
 
 pnpm lint && pnpm spec:check && pnpm test:tooling && pnpm typecheck && pnpm test   # 끝내기 전 전역 검증
+pnpm --filter @starter/web test:e2e          # 화면 흐름을 바꿨을 때. 서버·웹을 3100·5174로 띄워 브라우저로 확인
 ```
 
 - 서버 통합 테스트는 실제 PostgreSQL을 쓴다. `TEST_DATABASE_URL`(기본 `postgres://starter:starter@localhost:5432/starter_test`)이 필요하고, 이름에 `test`가 없는 DB에서는 실행을 거부한다.
@@ -108,6 +109,6 @@ pnpm lint && pnpm spec:check && pnpm test:tooling && pnpm typecheck && pnpm test
 | [`commit-guard`](tooling/harness/commit-guard.mjs) | `git commit`        | 타입 탈출구, `.only`, 이유 없는 `eslint-disable`, 비밀값, 커밋 메시지 형식          |
 | [`spec-check`](tooling/harness/spec-check.mjs)     | pre-commit, CI      | 명세 형식, 테스트 없는 완료 시나리오, 없는 시나리오를 부르는 테스트, 명세 없는 소스 |
 | [`boundaries`](tooling/eslint/boundaries.mjs)      | ESLint              | 앱 사이 import                                                                      |
-| CI(`.github/workflows/ci.yml`)                     | 모든 push·PR        | lint, 명세, 가드 테스트, 타입 검사, 실제 PostgreSQL 테스트, 빌드                    |
+| CI(`.github/workflows/ci.yml`)                     | 모든 push·PR        | lint, 명세, 가드 테스트, 타입 검사, 실제 PostgreSQL 테스트, 빌드, 브라우저 E2E      |
 
 가드가 막으면 우회하지 말고 메시지가 말하는 대로 고친다. 가드 자체가 틀렸다고 보이면 사용자에게 알린다.

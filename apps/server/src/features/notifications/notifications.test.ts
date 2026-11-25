@@ -206,7 +206,13 @@ describe("알림", () => {
       ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
     }
 
-    const shortLived = await signAccessToken(a.session.user.id, "native", TEST_JWT_SECRET, 1);
+    const shortLived = await signAccessToken(
+      a.session.user.id,
+      "native",
+      TEST_JWT_SECRET,
+      t.now(),
+      1,
+    );
     const stream = await openStream(t.client({ kind: "native", accessToken: shortLived.token }));
     expect(await stream.next(3_000)).toBe("ended");
   });

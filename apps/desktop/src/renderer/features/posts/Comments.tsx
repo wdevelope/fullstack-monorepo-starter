@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import { Alert, Button, Muted, TextAreaField } from "../../components/ui.tsx";
 import { errorMessage, fieldErrors } from "../../lib/errors.ts";
-import { formatDate } from "../../lib/format.ts";
+import { timeAgo } from "../../lib/format.ts";
 import { orpc } from "../../lib/orpc.ts";
 
 export function Comments({
@@ -50,7 +50,7 @@ export function Comments({
                 <span className="font-medium text-zinc-700 dark:text-zinc-300">
                   {comment.author.nickname}
                 </span>{" "}
-                · {formatDate(comment.createdAt)}
+                · {timeAgo(comment.createdAt)}
               </p>
               <p className="mt-1 text-sm break-words whitespace-pre-wrap">{comment.body}</p>
             </div>
@@ -58,7 +58,9 @@ export function Comments({
               <Button
                 variant="danger"
                 disabled={remove.isPending && remove.variables.id === comment.id}
-                onClick={() => remove.mutate({ id: comment.id })}
+                onClick={() => {
+                  if (window.confirm("이 댓글을 삭제할까요?")) remove.mutate({ id: comment.id });
+                }}
               >
                 삭제
               </Button>

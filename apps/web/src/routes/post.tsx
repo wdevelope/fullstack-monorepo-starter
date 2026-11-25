@@ -104,6 +104,7 @@ export function PostPage() {
           <footer className="flex items-center gap-2 pt-2">
             <Button
               variant="secondary"
+              aria-pressed={data.likedByMe}
               disabled={!user || like.isPending || unlike.isPending}
               title={user ? undefined : "로그인하면 좋아요를 누를 수 있어요"}
               onClick={() => (data.likedByMe ? unlike : like).mutate({ id: postId })}
@@ -152,8 +153,12 @@ export function PostPage() {
                 </span>
                 {(user?.id === c.author.id || canModerate) && (
                   <button
+                    type="button"
                     className="text-red-600 hover:underline dark:text-red-400"
-                    onClick={() => deleteComment.mutate({ id: c.id })}
+                    disabled={deleteComment.isPending}
+                    onClick={() => {
+                      if (confirm("이 댓글을 삭제할까요?")) deleteComment.mutate({ id: c.id });
+                    }}
                   >
                     삭제
                   </button>
