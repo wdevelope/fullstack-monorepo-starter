@@ -4,8 +4,9 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useEffectEvent, useState } from "react";
 
+import { ErrorBanner } from "../components/ui.tsx";
 import { client, orpc, queryClient } from "../lib/api.ts";
-import { notificationText } from "../lib/notifications.ts";
+import { notificationPanelError, notificationText } from "../lib/notifications.ts";
 import { timeAgo } from "../lib/time.ts";
 
 const unreadQuery = () => orpc.notifications.unreadCount.queryOptions();
@@ -65,6 +66,7 @@ export function NotificationBell({ userId }: { userId: string }) {
   }
 
   const count = unread.data?.count ?? 0;
+  const panelError = notificationPanelError(list.error, markRead.error);
 
   return (
     <div className="relative">
@@ -98,6 +100,11 @@ export function NotificationBell({ userId }: { userId: string }) {
               모두 읽음
             </button>
           </div>
+          {panelError && (
+            <div className="px-4 py-3">
+              <ErrorBanner message={panelError} />
+            </div>
+          )}
           {list.isPending && <p className="px-4 py-3 text-sm text-zinc-500">불러오는 중…</p>}
           {list.data?.items.length === 0 && (
             <p className="px-4 py-6 text-center text-sm text-zinc-500">아직 알림이 없어요.</p>
