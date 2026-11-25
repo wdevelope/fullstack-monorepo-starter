@@ -29,7 +29,7 @@ export default function EditPostScreen() {
   return (
     <PostForm
       initial={post.data}
-      submitLabel="Save"
+      submitLabel="저장"
       onSubmit={(values) => update.mutate({ id, ...values })}
       pending={update.isPending}
       error={update.error}

@@ -21,13 +21,13 @@ function fakeSecureStorage() {
 }
 
 describe("refresh token store", () => {
-  it("reads null when no token was stored", async () => {
+  it("AUTH-19 저장한 토큰이 없으면 null을 읽는다", async () => {
     const { storage } = fakeSecureStorage();
 
     expect(await createRefreshTokenStore(storage).get()).toBeNull();
   });
 
-  it("keeps the latest token under one key", async () => {
+  it("AUTH-19 키 하나에 최신 토큰만 둔다", async () => {
     const { storage, values } = fakeSecureStorage();
     const store = createRefreshTokenStore(storage);
 
@@ -38,7 +38,7 @@ describe("refresh token store", () => {
     expect([...values.keys()]).toEqual([REFRESH_TOKEN_KEY]);
   });
 
-  it("AUTH-17 deletes the stored token when the session is cleared", async () => {
+  it("AUTH-17 세션이 지워지면 저장한 토큰을 삭제한다", async () => {
     const { storage, values } = fakeSecureStorage();
     const store = createRefreshTokenStore(storage);
     await store.set("refresh-0");

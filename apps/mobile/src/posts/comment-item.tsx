@@ -26,14 +26,14 @@ export function CommentItem({
         }));
         refreshPostList();
       },
-      onError: (error) => Alert.alert("Could not delete the comment", errorMessage(error)),
+      onError: (error) => Alert.alert("댓글을 삭제하지 못했어요", errorMessage(error)),
     }),
   );
 
   function confirmDelete() {
-    Alert.alert("Delete this comment?", undefined, [
-      { text: "Cancel", style: "cancel" },
-      { text: "Delete", style: "destructive", onPress: () => remove.mutate({ id: comment.id }) },
+    Alert.alert("이 댓글을 삭제할까요?", undefined, [
+      { text: "취소", style: "cancel" },
+      { text: "삭제", style: "destructive", onPress: () => remove.mutate({ id: comment.id }) },
     ]);
   }
 
@@ -46,7 +46,7 @@ export function CommentItem({
         </Text>
         {isAuthor ? (
           <TextButton
-            title="Delete"
+            title="삭제"
             tone="muted"
             onPress={confirmDelete}
             disabled={remove.isPending}

@@ -15,12 +15,12 @@ export function LikeButton({ post }: { post: PostDetail }) {
       updateCachedPost(post.id, (cached) => ({ ...cached, ...state }));
       refreshPostList();
     },
-    onError: (error: unknown) => Alert.alert("Could not update the like", errorMessage(error)),
+    onError: (error: unknown) => Alert.alert("좋아요를 반영하지 못했어요", errorMessage(error)),
   };
   const like = useMutation(orpc.posts.like.mutationOptions(mutationOptions));
   const unlike = useMutation(orpc.posts.unlike.mutationOptions(mutationOptions));
 
-  // Show the expected result while the request is in flight; the cache catches up on success.
+  // 요청이 진행되는 동안 예상 결과를 먼저 보인다. 성공하면 캐시가 따라잡는다.
   const pending = like.isPending || unlike.isPending;
   const liked = pending ? like.isPending : post.likedByMe;
   const count = liked === post.likedByMe ? post.likeCount : post.likeCount + (liked ? 1 : -1);
@@ -34,7 +34,7 @@ export function LikeButton({ post }: { post: PostDetail }) {
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={liked ? "Unlike" : "Like"}
+      accessibilityLabel={liked ? "좋아요 취소" : "좋아요"}
       accessibilityState={{ selected: liked, busy: pending }}
       disabled={pending}
       hitSlop={8}

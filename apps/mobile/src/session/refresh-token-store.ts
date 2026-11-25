@@ -1,6 +1,6 @@
 import type { RefreshTokenStore } from "@starter/api-client";
 
-/** The part of expo-secure-store this app uses. Injected so the adapter is testable without a device. */
+/** 이 앱이 쓰는 expo-secure-store의 일부. 기기 없이도 어댑터를 테스트할 수 있도록 주입한다. */
 export interface SecureStorage {
   getItemAsync(key: string): Promise<string | null>;
   setItemAsync(key: string, value: string): Promise<void>;
@@ -9,7 +9,7 @@ export interface SecureStorage {
 
 export const REFRESH_TOKEN_KEY = "starter.refresh-token";
 
-/** Keeps the refresh token in the Keychain (iOS) or Keystore-backed storage (Android). */
+/** 리프레시 토큰을 Keychain(iOS)이나 Keystore 기반 저장소(Android)에 둔다. */
 export function createRefreshTokenStore(storage: SecureStorage): RefreshTokenStore {
   return {
     get: () => storage.getItemAsync(REFRESH_TOKEN_KEY),

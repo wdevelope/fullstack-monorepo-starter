@@ -2,7 +2,7 @@ import type { PostSummary } from "@starter/contracts";
 import { Link } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
-import { formatRelativeTime, pluralize } from "../lib/format";
+import { formatRelativeTime } from "../lib/format";
 
 export function PostRow({ post }: { post: PostSummary }) {
   return (
@@ -18,8 +18,8 @@ export function PostRow({ post }: { post: PostSummary }) {
           {[
             post.author.nickname,
             formatRelativeTime(post.createdAt),
-            pluralize(post.likeCount, "like"),
-            pluralize(post.commentCount, "comment"),
+            `좋아요 ${post.likeCount}`,
+            `댓글 ${post.commentCount}`,
           ].join(" · ")}
         </Text>
       </Pressable>

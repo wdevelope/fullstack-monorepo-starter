@@ -3,13 +3,13 @@ import type { ReactNode } from "react";
 import { KeyboardAvoidingView, ScrollView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-/** A scrollable form that stays above the keyboard and clear of the home indicator. */
+/** 키보드 위에 머물고 홈 인디케이터를 가리지 않는 스크롤 폼. */
 export function FormScreen({ children }: { children: ReactNode }) {
   const headerHeight = useHeaderHeight();
   const insets = useSafeAreaInsets();
   return (
     <KeyboardAvoidingView
-      // Android draws edge to edge, so the window no longer resizes for the keyboard on its own.
+      // Android는 화면 끝까지(edge to edge) 그리므로, 창이 키보드에 맞춰 스스로 크기를 바꾸지 않는다.
       behavior="padding"
       keyboardVerticalOffset={headerHeight}
       className="flex-1 bg-white"
