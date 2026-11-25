@@ -173,7 +173,7 @@ sequenceDiagram
   S2->>PG: LISTEN notifications (인스턴스당 연결 하나, 시작할 때)
   S2-->>A: ready { unreadCount }
   B->>S1: comments.create
-  S1->>PG: BEGIN; INSERT comment; INSERT notification; SELECT pg_notify(...); COMMIT
+  S1->>PG: BEGIN#59; INSERT comment#59; INSERT notification#59; SELECT pg_notify(...)#59; COMMIT
   PG-->>S1: NOTIFY { id, recipientId }
   PG-->>S2: NOTIFY { id, recipientId }
   S2->>PG: 알림 조회 WHERE id AND recipient = Alice
