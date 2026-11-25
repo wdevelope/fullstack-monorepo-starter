@@ -43,7 +43,7 @@ function PostForm(props: {
     >
       <h1 className="text-2xl font-semibold tracking-tight">{props.heading}</h1>
       <TextField
-        label="Title"
+        label="제목"
         autoFocus
         maxLength={POST_TITLE_MAX}
         value={title}
@@ -51,7 +51,7 @@ function PostForm(props: {
         error={fields.title}
       />
       <TextAreaField
-        label="Body"
+        label="내용"
         rows={12}
         maxLength={POST_BODY_MAX}
         value={body}
@@ -61,7 +61,7 @@ function PostForm(props: {
       {props.error !== null && <Alert>{errorMessage(props.error)}</Alert>}
       <div className="flex justify-end gap-2">
         <Button variant="ghost" onClick={props.onCancel}>
-          Cancel
+          취소
         </Button>
         <Button type="submit" disabled={props.pending}>
           {props.submitLabel}
@@ -94,9 +94,9 @@ export function NewPostScreen({
 
   return (
     <PostForm
-      heading={workspace.data ? `New post in ${workspace.data.name}` : "New post"}
+      heading={workspace.data ? `${workspace.data.name}에 글쓰기` : "글쓰기"}
       initial={{ title: "", body: "" }}
-      submitLabel="Publish"
+      submitLabel="등록"
       pending={create.isPending}
       error={create.error}
       onSubmit={(values) => create.mutate({ ...values, workspaceId })}
@@ -122,16 +122,16 @@ export function EditPostScreen({ id, navigate }: { id: string; navigate: Navigat
     }),
   );
 
-  if (post.isPending) return <Muted>Loading…</Muted>;
+  if (post.isPending) return <Muted>불러오는 중…</Muted>;
   if (post.isError) return <ErrorNotice message={errorMessage(post.error)} />;
 
   return (
     <PostForm
-      // The form copies the post into local state once; a new id starts a fresh form.
+      // 폼은 글을 로컬 상태로 한 번만 복사한다. id가 바뀌면 새 폼으로 시작한다.
       key={post.data.id}
-      heading="Edit post"
+      heading="글 수정"
       initial={post.data}
-      submitLabel="Save"
+      submitLabel="저장"
       pending={update.isPending}
       error={update.error}
       onSubmit={(values) => update.mutate({ id, ...values })}

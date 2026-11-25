@@ -15,9 +15,9 @@ import { orpc } from "../../lib/orpc.ts";
 import { PostList } from "../posts/PostListScreen.tsx";
 
 const roleLabel: Record<WorkspaceRole, string> = {
-  owner: "Owner",
-  admin: "Admin",
-  member: "Member",
+  owner: "소유자",
+  admin: "관리자",
+  member: "멤버",
 };
 
 function RoleBadge({ role }: { role: WorkspaceRole }) {
@@ -44,8 +44,8 @@ export function WorkspaceListScreen({ navigate }: { navigate: Navigate }) {
 
   return (
     <section className="flex flex-col gap-6">
-      <h1 className="text-2xl font-semibold tracking-tight">Workspaces</h1>
-      <Muted>Private boards for teams. Only members can see a workspace and its posts.</Muted>
+      <h1 className="text-2xl font-semibold tracking-tight">워크스페이스</h1>
+      <Muted>팀을 위한 비공개 게시판이에요. 멤버만 워크스페이스와 그 글을 볼 수 있어요.</Muted>
       <form
         noValidate
         className="flex items-end gap-2"
@@ -56,7 +56,7 @@ export function WorkspaceListScreen({ navigate }: { navigate: Navigate }) {
       >
         <div className="flex-1">
           <TextField
-            label="New workspace"
+            label="새 워크스페이스"
             maxLength={WORKSPACE_NAME_MAX}
             value={name}
             onChange={(event) => setName(event.target.value)}
@@ -64,19 +64,19 @@ export function WorkspaceListScreen({ navigate }: { navigate: Navigate }) {
           />
         </div>
         <Button type="submit" disabled={create.isPending}>
-          Create
+          만들기
         </Button>
       </form>
       {create.error && <Alert>{errorMessage(create.error)}</Alert>}
 
-      {workspaces.isPending && <Muted>Loading…</Muted>}
+      {workspaces.isPending && <Muted>불러오는 중…</Muted>}
       {workspaces.isError && (
         <ErrorNotice
           message={errorMessage(workspaces.error)}
           onRetry={() => void workspaces.refetch()}
         />
       )}
-      {workspaces.data?.items.length === 0 && <Muted>You are not in any workspace yet.</Muted>}
+      {workspaces.data?.items.length === 0 && <Muted>아직 참여한 워크스페이스가 없어요.</Muted>}
       <ul className="flex flex-col gap-2">
         {workspaces.data?.items.map((workspace) => (
           <li key={workspace.id}>
@@ -103,11 +103,11 @@ export function WorkspaceScreen({ id, navigate }: { id: string; navigate: Naviga
       className="-ml-3 self-start"
       onClick={() => navigate({ name: "workspaces" })}
     >
-      ← Workspaces
+      ← 워크스페이스
     </Button>
   );
 
-  if (workspace.isPending) return <Muted>Loading…</Muted>;
+  if (workspace.isPending) return <Muted>불러오는 중…</Muted>;
   if (workspace.isError) {
     return (
       <div className="flex flex-col gap-4">
@@ -127,9 +127,9 @@ export function WorkspaceScreen({ id, navigate }: { id: string; navigate: Naviga
         </div>
         <div className="flex gap-2">
           <Button variant="secondary" onClick={() => navigate({ name: "workspace-members", id })}>
-            Members ({workspace.data.members.length})
+            멤버 ({workspace.data.members.length})
           </Button>
-          <Button onClick={() => navigate({ name: "new-post", workspaceId: id })}>New post</Button>
+          <Button onClick={() => navigate({ name: "new-post", workspaceId: id })}>글쓰기</Button>
         </div>
       </div>
       <PostList workspaceId={id} navigate={navigate} />
@@ -178,7 +178,7 @@ export function WorkspaceMembersScreen({
   );
   const destroy = useMutation(orpc.workspaces.delete.mutationOptions({ onSuccess: leave }));
 
-  if (workspace.isPending) return <Muted>Loading…</Muted>;
+  if (workspace.isPending) return <Muted>불러오는 중…</Muted>;
   if (workspace.isError) return <ErrorNotice message={errorMessage(workspace.error)} />;
   const data = workspace.data;
   const can = workspacePermissions(data.myRole);
@@ -193,7 +193,7 @@ export function WorkspaceMembersScreen({
       >
         ← {data.name}
       </Button>
-      <h1 className="text-2xl font-semibold tracking-tight">Members</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">멤버</h1>
       {error && <Alert>{errorMessage(error)}</Alert>}
 
       {can.addMembers && (
@@ -207,7 +207,7 @@ export function WorkspaceMembersScreen({
         >
           <div className="flex-1">
             <TextField
-              label="Add by email"
+              label="이메일로 멤버 추가"
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
@@ -215,7 +215,7 @@ export function WorkspaceMembersScreen({
             />
           </div>
           <Button type="submit" disabled={add.isPending}>
-            Add
+            추가
           </Button>
         </form>
       )}
@@ -227,12 +227,12 @@ export function WorkspaceMembersScreen({
             <li key={member.user.id} className="flex items-center justify-between gap-2 py-3">
               <span className="font-medium">
                 {member.user.nickname}
-                {isSelf && <span className="text-zinc-500"> (you)</span>}
+                {isSelf && <span className="text-zinc-500"> (나)</span>}
               </span>
               <span className="flex items-center gap-2">
                 {can.changeRoles && member.role !== "owner" ? (
                   <select
-                    aria-label={`Role of ${member.user.nickname}`}
+                    aria-label={`${member.user.nickname}님의 역할`}
                     className="rounded-md border border-zinc-300 bg-white px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900"
                     value={member.role}
                     disabled={updateRole.isPending}
@@ -244,8 +244,8 @@ export function WorkspaceMembersScreen({
                       })
                     }
                   >
-                    <option value="member">Member</option>
-                    <option value="admin">Admin</option>
+                    <option value="member">멤버</option>
+                    <option value="admin">관리자</option>
                   </select>
                 ) : (
                   <RoleBadge role={member.role} />
@@ -256,14 +256,14 @@ export function WorkspaceMembersScreen({
                     disabled={remove.isPending}
                     onClick={() => {
                       const question = isSelf
-                        ? `Leave ${data.name}?`
-                        : `Remove ${member.user.nickname} from ${data.name}?`;
+                        ? `${data.name}에서 나갈까요?`
+                        : `${member.user.nickname}님을 ${data.name}에서 내보낼까요?`;
                       if (window.confirm(question)) {
                         remove.mutate({ workspaceId: id, userId: member.user.id });
                       }
                     }}
                   >
-                    {isSelf ? "Leave" : "Remove"}
+                    {isSelf ? "나가기" : "내보내기"}
                   </Button>
                 )}
               </span>
@@ -274,18 +274,18 @@ export function WorkspaceMembersScreen({
 
       {can.deleteWorkspace && (
         <div className="flex items-center justify-between gap-4 border-t border-zinc-200 pt-4 dark:border-zinc-800">
-          <Muted>Deleting the workspace deletes its posts, comments and likes for everyone.</Muted>
+          <Muted>워크스페이스를 삭제하면 모든 멤버의 글·댓글·좋아요가 함께 삭제돼요.</Muted>
           <Button
             variant="danger"
             className="shrink-0"
             disabled={destroy.isPending}
             onClick={() => {
-              if (window.confirm(`Delete ${data.name} and everything in it?`)) {
+              if (window.confirm(`${data.name} 워크스페이스와 그 안의 모든 내용을 삭제할까요?`)) {
                 destroy.mutate({ id });
               }
             }}
           >
-            Delete workspace
+            워크스페이스 삭제
           </Button>
         </div>
       )}

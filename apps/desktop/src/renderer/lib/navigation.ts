@@ -1,4 +1,4 @@
-/** In-app screens. The app has a single window and no URLs, so plain state is enough. */
+/** 앱 안의 화면. 앱은 창 하나에 URL이 없으므로 평범한 상태로 충분하다. */
 export type View =
   | { name: "posts" }
   | { name: "post"; id: string }

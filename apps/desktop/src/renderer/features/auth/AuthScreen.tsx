@@ -6,7 +6,7 @@ import { errorMessage, fieldErrors } from "../../lib/errors.ts";
 import type { Navigate } from "../../lib/navigation.ts";
 import { signIn, signUp } from "../../lib/session.ts";
 
-/** Sign-in and sign-up. Input is checked by the contract schema in main, so errors map to fields. */
+/** 로그인과 회원가입. 입력은 메인에서 계약 스키마로 검사하므로 오류를 필드에 대응시킨다. */
 export function AuthScreen({
   mode,
   navigate,
@@ -27,9 +27,7 @@ export function AuthScreen({
 
   return (
     <div className="mx-auto max-w-sm pt-6">
-      <h1 className="text-2xl font-semibold tracking-tight">
-        {isSignUp ? "Create an account" : "Sign in"}
-      </h1>
+      <h1 className="text-2xl font-semibold tracking-tight">{isSignUp ? "회원가입" : "로그인"}</h1>
       <form
         noValidate
         className="mt-6 flex flex-col gap-4"
@@ -39,7 +37,7 @@ export function AuthScreen({
         }}
       >
         <TextField
-          label="Email"
+          label="이메일"
           type="email"
           autoComplete="email"
           autoFocus
@@ -49,36 +47,36 @@ export function AuthScreen({
         />
         {isSignUp && (
           <TextField
-            label="Nickname"
+            label="닉네임"
             autoComplete="nickname"
             value={nickname}
             onChange={(event) => setNickname(event.target.value)}
-            hint="2 to 20 characters. Shown on your posts."
+            hint="2~20자로 입력해 주세요. 내 글에 함께 표시돼요."
             error={fields.nickname}
           />
         )}
         <TextField
-          label="Password"
+          label="비밀번호"
           type="password"
           autoComplete={isSignUp ? "new-password" : "current-password"}
           value={password}
           onChange={(event) => setPassword(event.target.value)}
-          hint={isSignUp ? "At least 8 characters." : undefined}
+          hint={isSignUp ? "8자 이상 입력해 주세요." : undefined}
           error={fields.password}
         />
         {submit.error && <Alert>{errorMessage(submit.error)}</Alert>}
         <Button type="submit" disabled={submit.isPending}>
-          {isSignUp ? "Create account" : "Sign in"}
+          {isSignUp ? "회원가입" : "로그인"}
         </Button>
       </form>
       <p className="mt-6 text-sm text-zinc-500 dark:text-zinc-400">
-        {isSignUp ? "Already have an account? " : "New here? "}
+        {isSignUp ? "이미 계정이 있나요? " : "아직 계정이 없나요? "}
         <button
           type="button"
           className="font-medium text-zinc-900 underline underline-offset-2 dark:text-zinc-100"
           onClick={() => navigate({ name: isSignUp ? "sign-in" : "sign-up" })}
         >
-          {isSignUp ? "Sign in" : "Create an account"}
+          {isSignUp ? "로그인" : "회원가입"}
         </button>
       </p>
     </div>

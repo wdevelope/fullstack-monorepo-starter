@@ -4,16 +4,16 @@ import type { Notification, NotificationEvent } from "@starter/contracts";
 export interface NotificationForwarderOptions {
   client: Pick<ApiClient, "api" | "getUser" | "subscribe">;
   watch: typeof watchNotifications;
-  /** Sends the event to the renderer over the notification IPC channel. */
+  /** 알림 IPC 채널로 렌더러에 이벤트를 보낸다. */
   send(event: NotificationEvent): void;
-  /** Shows a system notification. */
+  /** 시스템 알림을 띄운다. */
   show(notification: Notification): void;
 }
 
 /**
- * Main owns the notification stream, as it owns every network call: it keeps one stream open while
- * a user is signed in, restarts it when the user changes, and forwards each event. Free of
- * Electron so it can be tested. Returns a function that stops it.
+ * 모든 네트워크 호출처럼 알림 스트림도 메인이 갖는다. 사용자가 로그인한 동안 스트림 하나를 열어 두고,
+ * 사용자가 바뀌면 다시 시작하며, 이벤트를 하나씩 전달한다. 테스트할 수 있도록 Electron에 의존하지
+ * 않는다. 멈추는 함수를 돌려준다.
  */
 export function startNotificationForwarder(options: NotificationForwarderOptions): () => void {
   const { client, watch, send, show } = options;

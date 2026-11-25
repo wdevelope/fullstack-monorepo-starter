@@ -13,11 +13,11 @@ export function PostListScreen({ user, navigate }: { user: User | null; navigate
   return (
     <section className="flex flex-col gap-6">
       <div className="flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold tracking-tight">Posts</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">공개 게시판</h1>
         {user ? (
-          <Button onClick={() => navigate({ name: "new-post" })}>New post</Button>
+          <Button onClick={() => navigate({ name: "new-post" })}>글쓰기</Button>
         ) : (
-          <Muted>Sign in to write, like and comment.</Muted>
+          <Muted>로그인하면 글을 쓰고 좋아요와 댓글을 남길 수 있어요.</Muted>
         )}
       </div>
       <PostList navigate={navigate} />
@@ -25,7 +25,7 @@ export function PostListScreen({ user, navigate }: { user: User | null; navigate
   );
 }
 
-/** The public board, or a workspace board when `workspaceId` is given. */
+/** 공개 게시판. `workspaceId`가 있으면 그 워크스페이스의 게시판이다. */
 export function PostList({ workspaceId, navigate }: { workspaceId?: string; navigate: Navigate }) {
   const posts = useInfiniteQuery(
     orpc.posts.list.infiniteOptions({
@@ -38,11 +38,11 @@ export function PostList({ workspaceId, navigate }: { workspaceId?: string; navi
 
   return (
     <div className="flex flex-col gap-6">
-      {posts.isPending && <Muted>Loading posts…</Muted>}
+      {posts.isPending && <Muted>글을 불러오는 중…</Muted>}
       {posts.isError && (
         <ErrorNotice message={errorMessage(posts.error)} onRetry={() => void posts.refetch()} />
       )}
-      {posts.isSuccess && items.length === 0 && <Muted>No posts yet.</Muted>}
+      {posts.isSuccess && items.length === 0 && <Muted>아직 글이 없어요.</Muted>}
 
       {items.length > 0 && (
         <ul className="flex flex-col gap-3">
@@ -58,8 +58,8 @@ export function PostList({ workspaceId, navigate }: { workspaceId?: string; navi
                   {post.excerpt}
                 </p>
                 <p className="mt-3 text-xs text-zinc-500">
-                  {post.author.nickname} · {formatDate(post.createdAt)} · {post.commentCount}{" "}
-                  comments · {post.likeCount} likes
+                  {post.author.nickname} · {formatDate(post.createdAt)} · 댓글 {post.commentCount} ·
+                  좋아요 {post.likeCount}
                 </p>
               </button>
             </li>
@@ -74,7 +74,7 @@ export function PostList({ workspaceId, navigate }: { workspaceId?: string; navi
           disabled={posts.isFetchingNextPage}
           onClick={() => void posts.fetchNextPage()}
         >
-          {posts.isFetchingNextPage ? "Loading…" : "Load more"}
+          {posts.isFetchingNextPage ? "불러오는 중…" : "더 보기"}
         </Button>
       )}
     </div>

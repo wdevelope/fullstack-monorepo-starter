@@ -3,8 +3,8 @@ import { contextBridge, ipcRenderer, type IpcRendererEvent } from "electron";
 
 import { IPC, type DesktopBridge } from "../shared/ipc.ts";
 
-// Each method maps to one fixed channel. The page never gets ipcRenderer itself, so it cannot
-// send to channels main does not expect.
+// 메서드마다 고정된 채널 하나에 대응한다. 페이지는 ipcRenderer 자체를 받지 못하므로
+// 메인이 기대하지 않는 채널로 보낼 수 없다.
 const bridge: DesktopBridge = {
   session: {
     restore: () => ipcRenderer.invoke(IPC.restore),
@@ -12,7 +12,7 @@ const bridge: DesktopBridge = {
     signUp: (input) => ipcRenderer.invoke(IPC.signUp, input),
     signOut: () => ipcRenderer.invoke(IPC.signOut),
     onUserChange(listener) {
-      // Forward the user only: the IPC event object would expose the sender to the page.
+      // 사용자만 넘긴다. IPC 이벤트 객체를 넘기면 발신자가 페이지에 드러난다.
       const forward = (_event: IpcRendererEvent, user: User | null) => listener(user);
       ipcRenderer.on(IPC.userChanged, forward);
       return () => {

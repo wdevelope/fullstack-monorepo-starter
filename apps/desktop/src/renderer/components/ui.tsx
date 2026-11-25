@@ -133,7 +133,7 @@ export function ErrorNotice({ message, onRetry }: { message: string; onRetry?: (
       <span>{message}</span>
       {onRetry && (
         <Button variant="secondary" onClick={onRetry}>
-          Retry
+          다시 시도
         </Button>
       )}
     </div>

@@ -20,13 +20,13 @@ import { startNotificationForwarder } from "./notification-forwarder.ts";
 import { createSafeStorageTokenStore } from "./token-store.ts";
 import { createAppUrlCheck, readApiUrl } from "./urls.ts";
 
-// Only unpackaged builds may load the dev server, so an env var cannot point a release at remote content.
+// 패키징하지 않은 빌드만 개발 서버를 불러온다. 그래서 환경 변수로 릴리스 빌드가 원격 콘텐츠를 열게 할 수 없다.
 const devServerUrl = app.isPackaged ? undefined : process.env.ELECTRON_RENDERER_URL;
 const rendererUrl =
   devServerUrl ?? pathToFileURL(join(import.meta.dirname, "../renderer/index.html")).href;
 const isAppUrl = createAppUrlCheck(rendererUrl);
 
-/** Linux falls back to a hard-coded key ("basic_text") without a keyring; that is not encryption. */
+/** 키링이 없는 Linux는 하드코딩된 키("basic_text")로 대신한다. 이것은 암호화가 아니다. */
 function isEncryptionAvailable() {
   if (!safeStorage.isEncryptionAvailable()) return false;
   return process.platform !== "linux" || safeStorage.getSelectedStorageBackend() !== "basic_text";
@@ -39,7 +39,7 @@ function createWindow() {
     minWidth: 640,
     minHeight: 480,
     show: false,
-    title: "Fullstack Starter",
+    title: "풀스택 스타터",
     backgroundColor: nativeTheme.shouldUseDarkColors ? "#09090b" : "#fafafa",
     webPreferences: {
       preload: join(import.meta.dirname, "../preload/index.cjs"),
@@ -102,10 +102,10 @@ function start() {
         window.webContents.send(IPC.notification, event);
       }
     },
-    // Shown by main, so the renderer still needs no notification permission.
+    // 메인이 띄우므로 렌더러에는 여전히 알림 권한이 필요 없다.
     show(notification) {
       if (!Notification.isSupported()) return;
-      const shown = new Notification({ title: "Community", body: notificationText(notification) });
+      const shown = new Notification({ title: "커뮤니티", body: notificationText(notification) });
       shown.on("click", () => {
         const [window] = BrowserWindow.getAllWindows();
         if (!window) return;
@@ -116,7 +116,7 @@ function start() {
     },
   });
 
-  // The renderer needs no camera, notifications, geolocation or anything else that asks.
+  // 렌더러에는 카메라·알림·위치 정보처럼 권한을 묻는 기능이 하나도 필요 없다.
   session.defaultSession.setPermissionRequestHandler((_contents, _permission, callback) =>
     callback(false),
   );
@@ -127,7 +127,7 @@ function start() {
   });
 }
 
-// Applies to every web contents, including any a bug or exploit manages to create.
+// 버그나 공격으로 만들어진 것까지 포함해 모든 web contents에 적용한다.
 app.on("web-contents-created", (_event, contents) => {
   contents.setWindowOpenHandler(() => ({ action: "deny" }));
   contents.on("will-navigate", (event) => {
@@ -136,8 +136,8 @@ app.on("web-contents-created", (_event, contents) => {
   contents.on("will-attach-webview", (event) => event.preventDefault());
 });
 
-// Two instances would share one refresh token. Rotation turns the second refresh into a reuse,
-// and the server then revokes the whole session (docs/specs/auth.md, rules 5 and 9).
+// 인스턴스 두 개는 리프레시 토큰 하나를 나눠 쓰게 된다. 회전 때문에 두 번째 갱신은 재사용이 되고,
+// 서버는 그 세션 전체를 폐기한다(docs/specs/auth.md 규칙 5, 9).
 if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {

@@ -9,8 +9,8 @@ import type { Navigate } from "../../lib/navigation.ts";
 import { orpc } from "../../lib/orpc.ts";
 
 /**
- * Applies the events main forwards from the notification stream: every event carries the unread
- * count, and the list is refetched (on `ready` too, to catch up after a reconnect).
+ * 메인이 알림 스트림에서 전달한 이벤트를 반영한다. 이벤트마다 읽지 않은 수가 실려 오고,
+ * 목록은 다시 불러온다(다시 연결한 뒤 따라잡도록 `ready`에서도).
  */
 export function useLiveNotifications() {
   const queryClient = useQueryClient();
@@ -32,10 +32,10 @@ export function NotificationButton({ navigate }: { navigate: Navigate }) {
   return (
     <Button
       variant="ghost"
-      aria-label={count > 0 ? `Notifications, ${count} unread` : "Notifications"}
+      aria-label={count > 0 ? `알림, 읽지 않음 ${count}개` : "알림"}
       onClick={() => navigate({ name: "notifications" })}
     >
-      Notifications
+      알림
       {count > 0 && (
         <span className="ml-1.5 rounded-full bg-red-600 px-1.5 text-xs font-semibold text-white">
           {count > 99 ? "99+" : count}
@@ -62,20 +62,20 @@ export function NotificationsScreen({ navigate }: { navigate: Navigate }) {
   return (
     <section className="flex flex-col gap-6">
       <div className="flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold tracking-tight">Notifications</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">알림</h1>
         <Button
           variant="secondary"
           disabled={markRead.isPending}
           onClick={() => markRead.mutate({})}
         >
-          Mark all read
+          모두 읽음
         </Button>
       </div>
-      {list.isPending && <Muted>Loading…</Muted>}
+      {list.isPending && <Muted>불러오는 중…</Muted>}
       {list.isError && (
         <ErrorNotice message={errorMessage(list.error)} onRetry={() => void list.refetch()} />
       )}
-      {list.data?.items.length === 0 && <Muted>No notifications yet.</Muted>}
+      {list.data?.items.length === 0 && <Muted>아직 알림이 없어요.</Muted>}
       <ul className="flex flex-col divide-y divide-zinc-200 dark:divide-zinc-800">
         {list.data?.items.map((notification) => (
           <li key={notification.id}>

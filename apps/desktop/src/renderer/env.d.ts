@@ -2,7 +2,7 @@ import type { DesktopBridge } from "../shared/ipc.ts";
 
 declare global {
   interface Window {
-    /** The preload bridge: the renderer's only way out of its sandbox. */
+    /** preload 브리지: 렌더러가 샌드박스 밖으로 나가는 유일한 길. */
     readonly desktop: DesktopBridge;
   }
 }

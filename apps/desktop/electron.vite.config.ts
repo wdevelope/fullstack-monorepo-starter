@@ -4,9 +4,9 @@ import { defineConfig } from "electron-vite";
 import type { Plugin } from "vite";
 
 /**
- * The production renderer may load only its own files and may not open any connection: every
- * request goes through the preload bridge to main. Dev additionally allows Vite's inline
- * React Refresh preamble, injected styles and the HMR websocket.
+ * 운영 렌더러는 자기 파일만 불러올 수 있고 어떤 연결도 열 수 없다. 모든 요청은 preload 브리지를
+ * 거쳐 메인으로 간다. 개발에서는 Vite의 인라인 React Refresh 프리앰블, 주입된 스타일,
+ * HMR 웹소켓을 추가로 허용한다.
  */
 const CSP = {
   production: [
@@ -41,7 +41,7 @@ function contentSecurityPolicy(): Plugin {
       mode = config.command === "serve" ? "development" : "production";
     },
     transformIndexHtml(html) {
-      // Fail the build rather than ship a page without a policy.
+      // 정책 없는 페이지를 내보내느니 빌드를 실패시킨다.
       if (!html.includes(CSP_PLACEHOLDER)) throw new Error(`index.html lacks ${CSP_PLACEHOLDER}`);
       return html.replace(CSP_PLACEHOLDER, CSP[mode].join("; "));
     },
@@ -50,13 +50,13 @@ function contentSecurityPolicy(): Plugin {
 
 export default defineConfig({
   main: {
-    // Bundle workspace packages and npm deps, so the packaged app ships without node_modules.
+    // 워크스페이스 패키지와 npm 의존성을 번들해 패키징한 앱에 node_modules가 들어가지 않게 한다.
     build: { externalizeDeps: false },
   },
   preload: {
     build: {
       externalizeDeps: false,
-      // Sandboxed preloads cannot be ES modules.
+      // 샌드박스 preload는 ES 모듈일 수 없다.
       rollupOptions: { output: { format: "cjs" } },
     },
   },

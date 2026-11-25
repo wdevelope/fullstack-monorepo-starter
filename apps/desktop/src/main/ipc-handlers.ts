@@ -15,8 +15,8 @@ function issuePath(issue: SchemaIssue): string[] {
 }
 
 /**
- * The renderer is untrusted, so main parses its input with the contract's own schema before
- * anything is sent. The error matches what the server returns for the same mistake.
+ * 렌더러는 믿을 수 없으므로 메인은 무엇이든 보내기 전에 계약의 스키마로 입력을 파싱한다.
+ * 오류는 같은 실수에 서버가 돌려주는 것과 같은 모양이다.
  */
 async function parseInput<T>(
   procedure: { "~orpc": { inputSchema?: Schema<unknown, T> } },
@@ -27,7 +27,7 @@ async function parseInput<T>(
   const result = await schema["~standard"].validate(input);
   if (result.issues) {
     throw new ORPCError("BAD_REQUEST", {
-      message: "Input validation failed",
+      message: "입력값 검증에 실패했어요.",
       data: {
         issues: result.issues.map((issue) => ({ message: issue.message, path: issuePath(issue) })),
       },
@@ -44,8 +44,8 @@ function forward<T>(
 }
 
 /**
- * Everything the renderer may call through `rpc`. The type requires exactly the paths of
- * `RendererContract`, so a session procedure cannot be added here by accident.
+ * 렌더러가 `rpc`로 부를 수 있는 전부다. 타입이 `RendererContract`의 경로와 정확히 같기를 요구하므로
+ * 세션 절차를 실수로 여기에 넣을 수 없다.
  */
 const RPC_PROCEDURES: Record<RpcPath, Forwarder> = {
   "auth.me": (api) => api.auth.me(),
@@ -87,17 +87,17 @@ const RPC_PROCEDURES: Record<RpcPath, Forwarder> = {
 export const RPC_PATHS: readonly string[] = Object.keys(RPC_PROCEDURES);
 
 function isRpcPath(path: unknown): path is RpcPath {
-  // Own keys only, so "constructor" or "__proto__" never resolve to something callable.
+  // 자체 키만 보므로 "constructor"나 "__proto__"가 호출할 수 있는 무언가로 풀리지 않는다.
   return typeof path === "string" && Object.hasOwn(RPC_PROCEDURES, path);
 }
 
 /**
- * The IPC handlers, free of Electron so they can be tested. Every result is plain data: the user
- * (never a token) or a serialised error.
+ * IPC 핸들러. 테스트할 수 있도록 Electron에 의존하지 않는다. 결과는 모두 평범한 데이터로,
+ * 사용자(토큰은 절대 아님)이거나 직렬화한 오류다.
  */
 export function createIpcHandlers(client: ApiClient) {
   return {
-    // A renderer reload must not rotate the refresh token again while main still has a session.
+    // 메인에 아직 세션이 있으면 렌더러를 새로고침해도 리프레시 토큰을 다시 회전하지 않는다.
     restore: () => toIpcResult(async () => client.getUser() ?? (await client.restore())),
 
     signIn: (input: unknown) =>
@@ -116,7 +116,7 @@ export function createIpcHandlers(client: ApiClient) {
       toIpcResult(async () => {
         if (!isRpcPath(path)) {
           throw new ORPCError("FORBIDDEN", {
-            message: "This procedure is not available to the renderer.",
+            message: "렌더러에서는 부를 수 없는 절차예요.",
           });
         }
         return RPC_PROCEDURES[path](client.api, input);
