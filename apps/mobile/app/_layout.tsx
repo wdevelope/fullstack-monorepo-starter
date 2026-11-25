@@ -52,7 +52,7 @@ function AfterSessionRestore({ children }: { children: ReactNode }) {
 function Splash() {
   return (
     <View className="flex-1 items-center justify-center gap-4 bg-white">
-      <Text className="text-2xl font-bold text-neutral-900">Starter</Text>
+      <Text className="text-2xl font-bold text-neutral-900">커뮤니티</Text>
       <ActivityIndicator color="#737373" />
     </View>
   );
