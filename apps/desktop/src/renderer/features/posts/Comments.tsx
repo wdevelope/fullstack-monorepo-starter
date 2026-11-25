@@ -14,12 +14,12 @@ export function Comments({
 }: {
   post: PostDetail;
   user: User | null;
-  /** Workspace admins and the owner may delete anyone's comment there. */
+  /** 워크스페이스 관리자와 소유자는 그 안에서 누구의 댓글이든 삭제할 수 있다. */
   canModerate: boolean;
 }) {
   const queryClient = useQueryClient();
   const [body, setBody] = useState("");
-  // The detail holds the comments; the list shows their count.
+  // 상세에는 댓글이 있고, 목록은 댓글 수를 보여 준다.
   const refresh = () =>
     Promise.all([
       queryClient.invalidateQueries({
@@ -39,9 +39,9 @@ export function Comments({
 
   return (
     <section className="flex flex-col gap-4">
-      <h2 className="text-lg font-semibold">Comments ({post.comments.length})</h2>
+      <h2 className="text-lg font-semibold">댓글 ({post.comments.length})</h2>
 
-      {post.comments.length === 0 && <Muted>No comments yet.</Muted>}
+      {post.comments.length === 0 && <Muted>아직 댓글이 없어요.</Muted>}
       <ul className="flex flex-col divide-y divide-zinc-200 dark:divide-zinc-800">
         {post.comments.map((comment) => (
           <li key={comment.id} className="flex items-start justify-between gap-4 py-3">
@@ -60,7 +60,7 @@ export function Comments({
                 disabled={remove.isPending && remove.variables.id === comment.id}
                 onClick={() => remove.mutate({ id: comment.id })}
               >
-                Delete
+                삭제
               </Button>
             )}
           </li>
@@ -78,7 +78,7 @@ export function Comments({
           }}
         >
           <TextAreaField
-            label="Add a comment"
+            label="댓글 남기기"
             rows={3}
             maxLength={COMMENT_BODY_MAX}
             value={body}
@@ -87,11 +87,11 @@ export function Comments({
           />
           {create.error && <Alert>{errorMessage(create.error)}</Alert>}
           <Button type="submit" className="self-end" disabled={create.isPending}>
-            Comment
+            댓글 달기
           </Button>
         </form>
       ) : (
-        <Muted>Sign in to comment.</Muted>
+        <Muted>댓글을 남기려면 로그인해 주세요.</Muted>
       )}
     </section>
   );

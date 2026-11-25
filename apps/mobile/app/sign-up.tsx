@@ -35,7 +35,7 @@ export default function SignUpScreen() {
     <FormScreen>
       {signUp.error ? <ErrorBanner error={signUp.error} /> : null}
       <TextField
-        label="Email"
+        label="이메일"
         value={email}
         onChangeText={setEmail}
         error={fieldErrors.email}
@@ -47,32 +47,32 @@ export default function SignUpScreen() {
         autoFocus
       />
       <TextField
-        label="Nickname"
+        label="닉네임"
         value={nickname}
         onChangeText={setNickname}
         error={fieldErrors.nickname}
-        hint="Shown next to your posts and comments."
+        hint="글과 댓글에 함께 표시돼요."
         autoCapitalize="none"
         autoComplete="username"
         autoCorrect={false}
         textContentType="nickname"
       />
       <TextField
-        label="Password"
+        label="비밀번호"
         value={password}
         onChangeText={setPassword}
         error={fieldErrors.password}
-        hint={`At least ${passwordSchema.minLength} characters.`}
+        hint={`${passwordSchema.minLength}자 이상이어야 해요.`}
         secureTextEntry
         autoComplete="new-password"
         textContentType="newPassword"
         returnKeyType="go"
         onSubmitEditing={submit}
       />
-      <Button title="Create account" onPress={submit} loading={signUp.isPending} />
+      <Button title="회원가입" onPress={submit} loading={signUp.isPending} />
       <View className="flex-row items-center justify-center gap-1.5 pt-2">
-        <Text className="text-base text-neutral-500">Already have an account?</Text>
-        <TextButton title="Sign in" onPress={() => router.replace("/sign-in")} />
+        <Text className="text-base text-neutral-500">이미 계정이 있나요?</Text>
+        <TextButton title="로그인" onPress={() => router.replace("/sign-in")} />
       </View>
     </FormScreen>
   );

@@ -8,7 +8,7 @@ import { TextButton } from "../../../src/components/button";
 import { ErrorView, LoadingView } from "../../../src/components/feedback";
 import { orpc } from "../../../src/lib/api";
 import { errorMessage } from "../../../src/lib/errors";
-import { formatRelativeTime, pluralize } from "../../../src/lib/format";
+import { formatRelativeTime } from "../../../src/lib/format";
 import { leave } from "../../../src/lib/navigation";
 import { refreshPostList } from "../../../src/posts/cache";
 import { CommentComposer } from "../../../src/posts/comment-composer";
@@ -27,7 +27,7 @@ export default function PostScreen() {
 
   return (
     <KeyboardAvoidingView
-      // Android draws edge to edge, so the window no longer resizes for the keyboard on its own.
+      // Android는 화면 끝까지(edge to edge) 그리므로, 창이 키보드에 맞춰 스스로 크기를 바꾸지 않는다.
       behavior="padding"
       keyboardVerticalOffset={headerHeight}
       className="flex-1 bg-white"
@@ -42,7 +42,7 @@ export default function PostScreen() {
           <PostHeader post={post.data} isAuthor={post.data.author.id === user?.id} />
         }
         ListEmptyComponent={
-          <Text className="px-5 py-4 text-sm text-neutral-500">No comments yet.</Text>
+          <Text className="px-5 py-4 text-sm text-neutral-500">아직 댓글이 없어요.</Text>
         }
         keyboardDismissMode="interactive"
         keyboardShouldPersistTaps="handled"
@@ -70,7 +70,7 @@ function PostHeader({ post, isAuthor }: { post: PostDetail; isAuthor: boolean })
         {isAuthor ? <AuthorActions postId={post.id} /> : null}
       </View>
       <Text className="mt-6 text-sm font-semibold text-neutral-900">
-        {pluralize(post.comments.length, "comment")}
+        {`댓글 ${post.comments.length}`}
       </Text>
     </View>
   );
@@ -80,30 +80,25 @@ function AuthorActions({ postId }: { postId: string }) {
   const remove = useMutation(
     orpc.posts.delete.mutationOptions({
       onSuccess: () => {
-        // Leave first: the detail query is still mounted and must not refetch a deleted post.
+        // 먼저 화면을 떠난다. 상세 쿼리가 아직 마운트돼 있어 삭제된 글을 다시 불러오면 안 된다.
         leave();
         refreshPostList();
       },
-      onError: (error) => Alert.alert("Could not delete the post", errorMessage(error)),
+      onError: (error) => Alert.alert("글을 삭제하지 못했어요", errorMessage(error)),
     }),
   );
 
   function confirmDelete() {
-    Alert.alert("Delete this post?", "Its comments and likes are deleted too.", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Delete", style: "destructive", onPress: () => remove.mutate({ id: postId }) },
+    Alert.alert("이 글을 삭제할까요?", "댓글과 좋아요도 함께 삭제돼요.", [
+      { text: "취소", style: "cancel" },
+      { text: "삭제", style: "destructive", onPress: () => remove.mutate({ id: postId }) },
     ]);
   }
 
   return (
     <View className="flex-row items-center gap-5">
-      <TextButton title="Edit" onPress={() => router.push(`/posts/${postId}/edit`)} />
-      <TextButton
-        title="Delete"
-        tone="danger"
-        disabled={remove.isPending}
-        onPress={confirmDelete}
-      />
+      <TextButton title="수정" onPress={() => router.push(`/posts/${postId}/edit`)} />
+      <TextButton title="삭제" tone="danger" disabled={remove.isPending} onPress={confirmDelete} />
     </View>
   );
 }

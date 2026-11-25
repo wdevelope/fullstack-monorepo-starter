@@ -9,8 +9,8 @@ import { router } from "./router.tsx";
 
 const root = createRoot(document.getElementById("root")!);
 
-// Restore the session from the refresh cookie before the first render, so protected pages do
-// not flash a sign-in redirect. A network failure just starts the app signed out.
+// 첫 렌더링 전에 리프레시 쿠키로 세션을 복원한다. 그래서 보호된 페이지가 로그인 리다이렉트로
+// 잠깐 깜박이지 않는다. 네트워크가 실패하면 로그아웃 상태로 앱을 시작할 뿐이다.
 client
   .restore()
   .catch(() => null)

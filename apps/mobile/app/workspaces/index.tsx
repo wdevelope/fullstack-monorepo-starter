@@ -8,6 +8,7 @@ import { Button } from "../../src/components/button";
 import { ErrorBanner, ErrorView, LoadingView } from "../../src/components/feedback";
 import { TextField } from "../../src/components/text-field";
 import { orpc, queryClient } from "../../src/lib/api";
+import { roleLabel } from "../../src/lib/format";
 import { useUser } from "../../src/session/use-user";
 
 export default function WorkspaceListScreen() {
@@ -38,14 +39,14 @@ export default function WorkspaceListScreen() {
       ListHeaderComponent={
         <View className="gap-3 border-b border-neutral-100 px-5 py-4">
           <TextField
-            label="New workspace"
+            label="새 워크스페이스"
             value={name}
             maxLength={WORKSPACE_NAME_MAX}
             onChangeText={setName}
           />
           {create.error ? <ErrorBanner error={create.error} /> : null}
           <Button
-            title="Create"
+            title="만들기"
             compact
             loading={create.isPending}
             disabled={!name.trim()}
@@ -55,14 +56,14 @@ export default function WorkspaceListScreen() {
       }
       ListEmptyComponent={
         <Text className="px-8 pt-12 text-center text-base text-neutral-500">
-          You are not in any workspace yet.
+          아직 속한 워크스페이스가 없어요.
         </Text>
       }
       renderItem={({ item }) => (
         <Link href={`/workspaces/${item.id}`} asChild>
           <Pressable className="flex-row items-center justify-between px-5 py-4 active:bg-neutral-50">
             <Text className="text-[17px] font-semibold text-neutral-900">{item.name}</Text>
-            <Text className="text-xs capitalize text-neutral-500">{item.role}</Text>
+            <Text className="text-xs text-neutral-500">{roleLabel[item.role]}</Text>
           </Pressable>
         </Link>
       )}

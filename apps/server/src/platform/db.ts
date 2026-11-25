@@ -12,5 +12,5 @@ export function createDatabase(url: string): { db: Database; close: () => Promis
 }
 
 export type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
-/** The database or an open transaction: functions that take this can run inside either. */
+/** 데이터베이스나 열린 트랜잭션이다. 이 타입을 받는 함수는 어느 쪽에서든 실행할 수 있다. */
 export type Executor = Database | Transaction;

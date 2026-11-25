@@ -53,7 +53,7 @@ const TONES = {
   danger: "text-red-600",
 } as const;
 
-/** A borderless text action for headers and inline controls. */
+/** 헤더와 인라인 컨트롤에 쓰는 테두리 없는 텍스트 동작. */
 export function TextButton({
   title,
   onPress,

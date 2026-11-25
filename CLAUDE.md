@@ -1,51 +1,29 @@
-# CLAUDE.md
+@AGENTS.md
 
-Guidance for Claude Code (and humans) working in this repository.
+# Claude Code 전용
 
-## Layout
+위 `AGENTS.md`가 모든 에이전트에 공통인 규칙이다. 여기에는 Claude Code에서만 쓰는 스킬·훅·권한을 적는다.
 
-| Path                  | What it is                                                                |
-| --------------------- | ------------------------------------------------------------------------- |
-| `packages/contracts`  | oRPC contract + Zod schemas. The only definition of the API.              |
-| `packages/api-client` | Typed client with session handling and single-flight token refresh.       |
-| `apps/server`         | Hono + oRPC + Drizzle + PostgreSQL. Migrations in `apps/server/drizzle`.  |
-| `apps/web`            | Vite + React 19 + TanStack Router/Query + Tailwind v4.                    |
-| `apps/desktop`        | Electron. The main process owns the session; the renderer has no network. |
-| `apps/mobile`         | Expo Router + NativeWind. Refresh token in the OS keychain (SecureStore). |
-| `docs/specs`          | Feature specs with scenario IDs. The source of truth for behaviour.       |
-| `tooling/`            | ESLint boundary rule, commit guard, spec check, git hooks.                |
+## 스킬 (`.claude/skills/`)
 
-## Rules
+반복 절차는 스킬에 있다. 사용자의 말이 아래와 맞으면 그 스킬을 쓴다.
 
-- **Spec, then test, then code.** New behaviour starts as a spec (`spec` skill) that the user approves. Implementation is test-first (`implement` skill). Test titles start with the scenario ID: `it("COM-3 ...")`.
-- **Vertical slices.** A feature goes contract → server → clients in one pass. Do not split one feature's layers across agents.
-- **Boundaries.** Apps never import each other. Shared code lives in `packages/`. ESLint enforces this.
-- **Validate at the edges.** Zod schemas in the contract validate every request. Clients reuse the same schemas for forms.
-- **Migrations are append-only.** Change `apps/server/src/db/schema.ts`, then `pnpm --filter @starter/server db:generate`.
-- **No secrets in git.** Only `.env.example` files with variable names. The commit guard blocks key-like strings and `.env` files.
-- **No type escape hatches.** No `any`, `as unknown as`, `@ts-ignore`; `eslint-disable` needs a reason after `--`.
-- Commit subjects follow `type(scope): summary` (feat, fix, refactor, test, docs, build, ci, chore, perf).
+| 스킬         | 언제                                                                   | 하는 일                                                             |
+| ------------ | ---------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `/spec`      | "북마크 기능 만들자", "이 동작 바꾸자", 가드가 "명세 먼저"라고 막을 때 | 명세 초안을 쓰거나 고치고 승인을 받는다                             |
+| `/implement` | 승인된 명세를 구현할 때                                                | 계약 → 서버 → 클라이언트를 테스트 먼저 한 번에 관통한다             |
+| `/commit`    | "커밋해줘", "나눠서 커밋해줘"                                          | 변경을 의도별로 나눠 한국어 메시지로 경로 지정 커밋한다             |
+| `/next`      | "남은 작업 뭐야?", "다음 진행해", "나중에 하자"                        | `docs/plans/00-작업목록.md`에서 다음 일을 골라 끝까지 하거나 더한다 |
+| `/pr`        | "PR 올려줘", "푸시해줘"                                                | 검증 후 브랜치를 push하고 한국어 PR을 만든 뒤 CI 결과를 본다        |
 
-## Guards
+`spec` → `implement` → `commit` → `pr` 순서로 이어진다. `next`는 "무엇을 할지"만 고르고 "어떻게"는 이 순서에 맡긴다.
 
-| Guard                      | When                | What it blocks                                                                |
-| -------------------------- | ------------------- | ----------------------------------------------------------------------------- |
-| `.claude/hooks/edit-guard` | Before Claude edits | Logic edits with no test change in the same workspace, secrets, migrations    |
-| `tooling/git-hooks`        | `git commit`        | Commit guard, spec check, Prettier and ESLint on staged files, message format |
-| `pnpm spec:check`          | Pre-commit and CI   | Done scenarios without tests, tests naming unknown scenarios                  |
-| CI                         | Every push and PR   | Lint, specs, tooling tests, typecheck, tests on real Postgres, builds         |
+## 훅과 권한 (`.claude/settings.json`)
 
-## Commands
+- `PreToolUse` 훅 `edit-guard`가 Edit·Write 전에 돈다. 막히면 메시지대로 한다: 명세 먼저(`/spec`), 테스트 먼저(실패하는 테스트를 먼저 쓴다).
+- 동작이 바뀌지 않는 편집(이름 변경·이동·주석·문구)이 테스트 먼저 규칙에 막히면, 이유를 `.claude/guard-exempt.local`에 한 줄로 적는다. 60분 동안 유효하고, 작업 보고에 예외를 썼다고 적는다.
+- `permissions.deny`가 비밀값(`.env*`·키 파일)과 빌드 출력, Expo 네이티브 폴더 편집을 막는다. 비밀값은 사용자가 직접 넣는다.
 
-```bash
-pnpm db:up                                   # Postgres in Docker (also creates starter_test)
-pnpm --filter @starter/server db:migrate     # apply migrations to DATABASE_URL
-pnpm dev                                     # server :3000 + web :5173
+## 앱별 규칙 (`.claude/rules/`)
 
-pnpm --filter <package> test                 # while iterating
-pnpm lint && pnpm spec:check && pnpm test:tooling && pnpm typecheck && pnpm test   # before finishing
-```
-
-Server integration tests need `TEST_DATABASE_URL` (default `postgres://starter:starter@localhost:5432/starter_test`). They refuse to run against a database whose name lacks `test`.
-
-Report results as they are. If something could not be verified (for example the mobile app on a device, or the Electron window), say so.
+`paths`가 맞는 파일을 다룰 때 자동으로 읽힌다: `server.md`(apps/server), `web.md`(apps/web), `desktop.md`(apps/desktop), `mobile.md`(apps/mobile), `packages.md`(packages/\*). 새 함정이나 규칙을 발견하면 해당 파일에 한 줄로 더한다.

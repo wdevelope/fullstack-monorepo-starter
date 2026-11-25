@@ -7,7 +7,7 @@ import { Button, Card, ErrorBanner, Field, TextArea, TextInput } from "../compon
 import { orpc, queryClient, useUser } from "../lib/api.ts";
 import { describeError } from "../lib/errors.ts";
 
-/** Handles both /posts/new and /posts/$postId/edit. */
+/** /posts/new와 /posts/$postId/edit를 함께 처리한다. */
 export function PostEditorPage() {
   const { postId } = useParams({ strict: false });
   const search = useSearch({ strict: false });
@@ -15,14 +15,14 @@ export function PostEditorPage() {
     ...orpc.posts.get.queryOptions({ input: { id: postId ?? "" } }),
     enabled: Boolean(postId),
   });
-  // A new post goes where the link said; an edited one stays where it is.
+  // 새 글은 링크가 가리킨 곳에 쓰고, 수정하는 글은 있던 곳에 그대로 둔다.
   const workspaceId = postId ? existing.data?.workspaceId : search.workspaceId;
   const workspace = useQuery({
     ...orpc.workspaces.get.queryOptions({ input: { id: workspaceId ?? "" } }),
     enabled: Boolean(workspaceId),
   });
 
-  if (postId && existing.isPending) return <p className="text-sm text-zinc-500">Loading…</p>;
+  if (postId && existing.isPending) return <p className="text-sm text-zinc-500">불러오는 중…</p>;
   if (existing.isError) return <ErrorBanner message={describeError(existing.error)} />;
   if (workspace.isError) return <ErrorBanner message={describeError(workspace.error)} />;
   return (
@@ -59,10 +59,10 @@ function PostForm({
   const error = create.error ?? update.error;
 
   if (initial && initial.author.id !== user?.id) {
-    return <ErrorBanner message="Only the author can edit this post." />;
+    return <ErrorBanner message="작성자만 이 글을 수정할 수 있어요." />;
   }
 
-  // The contract's schema trims and checks lengths, exactly as the server will.
+  // 계약의 스키마가 서버와 똑같이 앞뒤 공백을 지우고 길이를 검사한다.
   const parsed = postInputSchema.safeParse({ title, body });
   const issues = new Set(parsed.error?.issues.map((issue) => issue.path[0]));
 
@@ -78,13 +78,15 @@ function PostForm({
     <Card>
       <form onSubmit={submit} className="space-y-4" noValidate>
         <h1 className="text-xl font-semibold">
-          {postId ? "Edit post" : "New post"}
-          {workspace?.name && <span className="text-zinc-500"> in {workspace.name}</span>}
+          {postId ? "글 수정" : "글쓰기"}
+          {workspace?.name && <span className="text-zinc-500"> · {workspace.name}</span>}
         </h1>
         <ErrorBanner message={error ? describeError(error) : null} />
         <Field
-          label="Title"
-          error={touched && issues.has("title") ? `1 to ${POST_TITLE_MAX} characters.` : undefined}
+          label="제목"
+          error={
+            touched && issues.has("title") ? `1~${POST_TITLE_MAX}자로 입력해 주세요.` : undefined
+          }
         >
           <TextInput
             value={title}
@@ -93,8 +95,8 @@ function PostForm({
           />
         </Field>
         <Field
-          label="Body"
-          error={touched && issues.has("body") ? "Write something first." : undefined}
+          label="본문"
+          error={touched && issues.has("body") ? "본문을 입력해 주세요." : undefined}
         >
           <TextArea
             value={body}
@@ -104,10 +106,10 @@ function PostForm({
         </Field>
         <div className="flex justify-end gap-2">
           <Button type="button" variant="secondary" onClick={() => history.back()}>
-            Cancel
+            취소
           </Button>
           <Button type="submit" disabled={pending}>
-            {pending ? "Saving…" : postId ? "Save" : "Publish"}
+            {pending ? "저장하는 중…" : postId ? "저장" : "등록"}
           </Button>
         </div>
       </form>

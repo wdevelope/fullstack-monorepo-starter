@@ -11,7 +11,7 @@ import { WorkspaceListPage, WorkspaceMembersPage, WorkspacePage } from "./routes
 
 const rootRoute = createRootRoute({ component: Layout });
 
-/** Pages that need a signed-in user send everyone else to /login and back afterwards. */
+/** 로그인이 필요한 페이지는 로그인하지 않은 사용자를 /login으로 보내고, 로그인 뒤 다시 돌아오게 한다. */
 function requireUser({ location }: { location: { href: string } }) {
   if (!client.getUser()) throw redirect({ to: "/login", search: { redirect: location.href } });
 }
@@ -59,7 +59,7 @@ const routeTree = rootRoute.addChildren([
     getParentRoute: () => rootRoute,
     path: "/posts/new",
     beforeLoad: requireUser,
-    // Set when writing in a workspace; absent for the public board.
+    // 워크스페이스에서 글을 쓸 때 정해진다. 공개 게시판이면 없다.
     validateSearch: (search: Record<string, unknown>) => ({
       workspaceId: typeof search.workspaceId === "string" ? search.workspaceId : undefined,
     }),

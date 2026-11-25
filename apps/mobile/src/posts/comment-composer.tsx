@@ -11,7 +11,7 @@ import { errorMessage } from "../lib/errors";
 import { useUser } from "../session/use-user";
 import { refreshPostList, updateCachedPost } from "./cache";
 
-/** Pinned under the comments. Signed-out readers get a sign-in prompt instead. */
+/** 댓글 아래에 고정된다. 로그아웃한 독자에게는 대신 로그인 안내를 보인다. */
 export function CommentComposer({ postId }: { postId: string }) {
   const user = useUser();
   const insets = useSafeAreaInsets();
@@ -39,7 +39,8 @@ export function CommentComposer({ postId }: { postId: string }) {
           className="py-2 active:opacity-60"
         >
           <Text className="text-center text-base text-neutral-500">
-            <Text className="font-semibold text-neutral-900">Sign in</Text> to like and comment
+            <Text className="font-semibold text-neutral-900">로그인</Text>하고 좋아요와 댓글을 남겨
+            보세요
           </Text>
         </Pressable>
       ) : (
@@ -49,8 +50,8 @@ export function CommentComposer({ postId }: { postId: string }) {
           ) : null}
           <View className="flex-row items-end gap-2">
             <TextInput
-              accessibilityLabel="Comment"
-              placeholder="Add a comment"
+              accessibilityLabel="댓글"
+              placeholder="댓글을 남겨 보세요"
               placeholderTextColor="#a3a3a3"
               value={body}
               onChangeText={setBody}
@@ -59,7 +60,7 @@ export function CommentComposer({ postId }: { postId: string }) {
               className="max-h-32 min-h-11 flex-1 rounded-2xl border border-neutral-300 px-4 py-2.5 text-base text-neutral-900 focus:border-neutral-900"
             />
             <Button
-              title="Send"
+              title="댓글 달기"
               compact
               disabled={!trimmed}
               loading={create.isPending}

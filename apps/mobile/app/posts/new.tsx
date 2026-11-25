@@ -8,7 +8,7 @@ import { useUser } from "../../src/session/use-user";
 
 export default function NewPostScreen() {
   const user = useUser();
-  // Set when opened from a workspace board; absent for the public board.
+  // 워크스페이스 게시판에서 열었을 때만 있고, 공개 게시판에서는 없다.
   const { workspaceId } = useLocalSearchParams<{ workspaceId?: string }>();
   const create = useMutation(
     orpc.posts.create.mutationOptions({
@@ -23,7 +23,7 @@ export default function NewPostScreen() {
 
   return (
     <PostForm
-      submitLabel="Publish"
+      submitLabel="등록"
       onSubmit={(values) => create.mutate({ ...values, workspaceId })}
       pending={create.isPending}
       error={create.error}

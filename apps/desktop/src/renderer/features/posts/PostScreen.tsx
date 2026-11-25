@@ -22,7 +22,7 @@ export function PostScreen({
   const postKey = orpc.posts.get.queryKey({ input: { id } });
   const post = useQuery(orpc.posts.get.queryOptions({ input: { id } }));
   const workspaceId = post.data?.workspaceId ?? null;
-  // For a workspace post: its name for the back button and the caller's role for moderation.
+  // 워크스페이스 글이면 뒤로 가기 버튼에 쓸 이름과, 관리 권한을 가릴 호출자의 역할을 가져온다.
   const workspace = useQuery({
     ...orpc.workspaces.get.queryOptions({ input: { id: workspaceId ?? "" } }),
     enabled: Boolean(workspaceId && user),
@@ -53,7 +53,7 @@ export function PostScreen({
         navigate(workspaceId ? { name: "workspace", id: workspaceId } : { name: "posts" })
       }
     >
-      ← {workspaceId ? (workspace.data?.name ?? "Workspace") : "All posts"}
+      ← {workspaceId ? (workspace.data?.name ?? "워크스페이스") : "공개 게시판"}
     </Button>
   );
 
@@ -61,7 +61,7 @@ export function PostScreen({
     return (
       <div className="flex flex-col gap-4">
         {back}
-        <Muted>Loading…</Muted>
+        <Muted>불러오는 중…</Muted>
       </div>
     );
   }
@@ -71,7 +71,7 @@ export function PostScreen({
       <div className="flex flex-col gap-4">
         {back}
         <ErrorNotice
-          message={missing ? "This post does not exist or was deleted." : errorMessage(post.error)}
+          message={missing ? "없거나 삭제된 글이에요." : errorMessage(post.error)}
           onRetry={missing ? undefined : () => void post.refetch()}
         />
       </div>
@@ -90,7 +90,7 @@ export function PostScreen({
         <h1 className="text-2xl font-semibold tracking-tight break-words">{data.title}</h1>
         <p className="text-sm text-zinc-500">
           {data.author.nickname} · {formatDate(data.createdAt)}
-          {data.updatedAt.getTime() !== data.createdAt.getTime() && " · edited"}
+          {data.updatedAt.getTime() !== data.createdAt.getTime() && " · 수정됨"}
         </p>
       </header>
 
@@ -104,28 +104,28 @@ export function PostScreen({
             disabled={toggling}
             onClick={() => (data.likedByMe ? unlike : like).mutate({ id })}
           >
-            {data.likedByMe ? "Liked" : "Like"} · {data.likeCount}
+            좋아요 · {data.likeCount}
           </Button>
         ) : (
-          <Muted>{data.likeCount} likes</Muted>
+          <Muted>좋아요 {data.likeCount}</Muted>
         )}
         {(isAuthor || canModerate) && (
           <div className="ml-auto flex gap-2">
             {isAuthor && (
               <Button variant="secondary" onClick={() => navigate({ name: "edit-post", id })}>
-                Edit
+                수정
               </Button>
             )}
             <Button
               variant="danger"
               disabled={remove.isPending}
               onClick={() => {
-                if (window.confirm("Delete this post? Its comments and likes are deleted too.")) {
+                if (window.confirm("이 글을 삭제할까요? 댓글과 좋아요도 함께 삭제돼요.")) {
                   remove.mutate({ id });
                 }
               }}
             >
-              Delete
+              삭제
             </Button>
           </div>
         )}

@@ -5,8 +5,8 @@ import { defineConfig } from "vite";
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
-    // Same-origin in development: the browser sees /rpc on the Vite server, so the refresh
-    // cookie is first-party and no CORS preflight is needed.
+    // 개발에서는 같은 origin이다. 브라우저는 Vite 서버의 /rpc를 보므로 리프레시 쿠키가
+    // 퍼스트 파티 쿠키가 되고 CORS 프리플라이트도 필요 없다.
     proxy: { "/rpc": "http://localhost:3000" },
   },
 });

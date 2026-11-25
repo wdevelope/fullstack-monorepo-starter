@@ -32,28 +32,28 @@ function Header({ user, navigate }: { user: User | null; navigate: Navigate }) {
           className="text-base font-semibold tracking-tight"
           onClick={() => navigate({ name: "posts" })}
         >
-          Community
+          커뮤니티
         </button>
         {user ? (
           <div className="flex items-center gap-3">
             <Button variant="ghost" onClick={() => navigate({ name: "workspaces" })}>
-              Workspaces
+              워크스페이스
             </Button>
             <NotificationButton navigate={navigate} />
             <span className="text-sm text-zinc-500 dark:text-zinc-400">
-              Signed in as{" "}
               <span className="font-medium text-zinc-900 dark:text-zinc-100">{user.nickname}</span>
+              님
             </span>
             <Button variant="secondary" disabled={leave.isPending} onClick={() => leave.mutate()}>
-              Sign out
+              로그아웃
             </Button>
           </div>
         ) : (
           <div className="flex gap-2">
             <Button variant="ghost" onClick={() => navigate({ name: "sign-in" })}>
-              Sign in
+              로그인
             </Button>
-            <Button onClick={() => navigate({ name: "sign-up" })}>Create account</Button>
+            <Button onClick={() => navigate({ name: "sign-up" })}>회원가입</Button>
           </div>
         )}
       </div>
@@ -93,13 +93,13 @@ export function App() {
   if (session.status === "restoring") {
     return (
       <div className="grid min-h-screen place-items-center bg-zinc-50 dark:bg-zinc-950">
-        <Muted>Restoring your session…</Muted>
+        <Muted>로그인 상태를 불러오는 중…</Muted>
       </div>
     );
   }
 
   const { user, restoreError } = session;
-  // Writing needs a session. If it ended meanwhile (e.g. the refresh token was rejected), sign in first.
+  // 글쓰기에는 세션이 필요하다. 그사이 세션이 끝났으면(예: 리프레시 토큰 거부) 먼저 로그인한다.
   const needsUser = !["posts", "post", "sign-in", "sign-up"].includes(view.name);
   const current: View = needsUser && !user ? { name: "sign-in" } : view;
 
@@ -109,7 +109,7 @@ export function App() {
       <main className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-8">
         {restoreError && (
           <ErrorNotice
-            message={`Could not restore your session. ${errorMessage(restoreError)}`}
+            message={`로그인 상태를 복원하지 못했어요. ${errorMessage(restoreError)}`}
             onRetry={() => void restoreSession()}
           />
         )}

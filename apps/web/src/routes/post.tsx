@@ -19,7 +19,7 @@ export function PostPage() {
   const postQuery = orpc.posts.get.queryOptions({ input: { id: postId } });
   const post = useQuery(postQuery);
   const workspaceId = post.data?.workspaceId ?? null;
-  // For a workspace post: its name for the breadcrumb and the caller's role for moderation.
+  // 워크스페이스 글이면 상위 경로 링크에 쓸 이름과, 관리 권한을 정할 호출자의 역할을 가져온다.
   const workspace = useQuery({
     ...orpc.workspaces.get.queryOptions({ input: { id: workspaceId ?? "" } }),
     enabled: Boolean(workspaceId && user),
@@ -64,12 +64,12 @@ export function PostPage() {
     }),
   );
 
-  if (post.isPending) return <p className="text-sm text-zinc-500">Loading…</p>;
+  if (post.isPending) return <p className="text-sm text-zinc-500">불러오는 중…</p>;
   if (post.isError) return <ErrorBanner message={describeError(post.error)} />;
 
   const data = post.data;
   const isAuthor = user?.id === data.author.id;
-  // Workspace admins and the owner may delete others' posts and comments (moderation).
+  // 워크스페이스 관리자와 소유자는 다른 사람의 글과 댓글을 지울 수 있다(관리).
   const canModerate = workspace.data ? workspacePermissions(workspace.data.myRole).moderate : false;
   const mutationError = [like, unlike, addComment, deleteComment, deletePost].find(
     (m) => m.error,
@@ -88,7 +88,7 @@ export function PostPage() {
           params={{ workspaceId }}
           className="text-sm text-zinc-500 hover:underline"
         >
-          ← {workspace.data?.name ?? "Workspace"}
+          ← {workspace.data?.name ?? "워크스페이스"}
         </Link>
       )}
       <Card>
@@ -97,7 +97,7 @@ export function PostPage() {
             <h1 className="text-2xl font-semibold">{data.title}</h1>
             <p className="text-sm text-zinc-500">
               {data.author.nickname} · {timeAgo(data.createdAt)}
-              {data.updatedAt.getTime() !== data.createdAt.getTime() && " · edited"}
+              {data.updatedAt.getTime() !== data.createdAt.getTime() && " · 수정됨"}
             </p>
           </header>
           <p className="whitespace-pre-wrap leading-relaxed">{data.body}</p>
@@ -105,16 +105,16 @@ export function PostPage() {
             <Button
               variant="secondary"
               disabled={!user || like.isPending || unlike.isPending}
-              title={user ? undefined : "Sign in to like"}
+              title={user ? undefined : "로그인하면 좋아요를 누를 수 있어요"}
               onClick={() => (data.likedByMe ? unlike : like).mutate({ id: postId })}
             >
-              {data.likedByMe ? "♥ Liked" : "♡ Like"} · {data.likeCount}
+              {data.likedByMe ? "♥ 좋아요" : "♡ 좋아요"} · {data.likeCount}
             </Button>
             {(isAuthor || canModerate) && (
               <>
                 {isAuthor ? (
                   <Link to="/posts/$postId/edit" params={{ postId }} className="ml-auto">
-                    <Button variant="secondary">Edit</Button>
+                    <Button variant="secondary">수정</Button>
                   </Link>
                 ) : (
                   <span className="ml-auto" />
@@ -123,12 +123,12 @@ export function PostPage() {
                   variant="danger"
                   disabled={deletePost.isPending}
                   onClick={() => {
-                    if (confirm("Delete this post and its comments?")) {
+                    if (confirm("이 글과 댓글을 모두 삭제할까요?")) {
                       deletePost.mutate({ id: postId });
                     }
                   }}
                 >
-                  Delete
+                  삭제
                 </Button>
               </>
             )}
@@ -139,7 +139,7 @@ export function PostPage() {
       <ErrorBanner message={mutationError ? describeError(mutationError) : null} />
 
       <section className="space-y-3">
-        <h2 className="font-semibold">Comments ({data.comments.length})</h2>
+        <h2 className="font-semibold">댓글 ({data.comments.length})</h2>
         <ul className="space-y-3">
           {data.comments.map((c) => (
             <li
@@ -155,7 +155,7 @@ export function PostPage() {
                     className="text-red-600 hover:underline dark:text-red-400"
                     onClick={() => deleteComment.mutate({ id: c.id })}
                   >
-                    Delete
+                    삭제
                   </button>
                 )}
               </div>
@@ -167,15 +167,15 @@ export function PostPage() {
         {user ? (
           <form onSubmit={submitComment} className="space-y-2">
             <TextArea
-              aria-label="Write a comment"
-              placeholder="Write a comment"
+              aria-label="댓글 쓰기"
+              placeholder="댓글을 입력해 주세요"
               maxLength={COMMENT_BODY_MAX}
               value={comment}
               onChange={(event) => setComment(event.target.value)}
               className="min-h-20"
             />
             <Button type="submit" disabled={addComment.isPending || !comment.trim()}>
-              Comment
+              댓글 달기
             </Button>
           </form>
         ) : (
@@ -185,9 +185,9 @@ export function PostPage() {
               search={{ redirect: `/posts/${postId}` }}
               className="font-medium text-indigo-600 dark:text-indigo-400"
             >
-              Sign in
-            </Link>{" "}
-            to comment.
+              로그인
+            </Link>
+            하면 댓글을 달 수 있어요.
           </p>
         )}
       </section>

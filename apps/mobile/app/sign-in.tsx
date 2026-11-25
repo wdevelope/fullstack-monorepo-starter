@@ -31,7 +31,7 @@ export default function SignInScreen() {
     <FormScreen>
       {signIn.error ? <ErrorBanner error={signIn.error} /> : null}
       <TextField
-        label="Email"
+        label="이메일"
         value={email}
         onChangeText={setEmail}
         error={fieldErrors.email}
@@ -43,7 +43,7 @@ export default function SignInScreen() {
         autoFocus
       />
       <TextField
-        label="Password"
+        label="비밀번호"
         value={password}
         onChangeText={setPassword}
         error={fieldErrors.password}
@@ -53,10 +53,10 @@ export default function SignInScreen() {
         returnKeyType="go"
         onSubmitEditing={submit}
       />
-      <Button title="Sign in" onPress={submit} loading={signIn.isPending} />
+      <Button title="로그인" onPress={submit} loading={signIn.isPending} />
       <View className="flex-row items-center justify-center gap-1.5 pt-2">
-        <Text className="text-base text-neutral-500">New here?</Text>
-        <TextButton title="Create an account" onPress={() => router.replace("/sign-up")} />
+        <Text className="text-base text-neutral-500">처음이신가요?</Text>
+        <TextButton title="회원가입" onPress={() => router.replace("/sign-up")} />
       </View>
     </FormScreen>
   );

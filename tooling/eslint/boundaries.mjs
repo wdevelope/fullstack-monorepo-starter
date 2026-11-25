@@ -1,11 +1,11 @@
 import path from "node:path";
 
-/** Workspace packages under packages/ that apps may import. Apps themselves are never importable. */
+/** 앱이 import할 수 있는 packages/ 아래 워크스페이스 패키지. 앱 자체는 어디서도 import할 수 없다. */
 const SHARED_PACKAGES = ["@starter/contracts", "@starter/api-client"];
 
 /**
- * Finds which workspace a file belongs to, e.g. { kind: "apps", name: "web", root: "/repo/apps/web" }.
- * Files outside apps/ and packages/ (tooling, configs) are not checked.
+ * 파일이 속한 워크스페이스를 찾는다. 예: { kind: "apps", name: "web", root: "/repo/apps/web" }.
+ * apps/와 packages/ 밖의 파일(tooling, 설정)은 검사하지 않는다.
  */
 function workspaceOf(filename) {
   const parts = filename.split(path.sep);
@@ -18,17 +18,17 @@ function workspaceOf(filename) {
 }
 
 /**
- * Apps never import each other, and packages never import apps. Apps share code only through
- * packages/, so a change in one app cannot silently break another.
+ * 앱은 서로 import하지 않고, 패키지는 앱을 import하지 않는다. 앱은 packages/로만 코드를 나누므로
+ * 한 앱의 변경이 다른 앱을 몰래 깨뜨리지 못한다.
  */
 const noCrossWorkspaceImports = {
   meta: {
     type: "problem",
-    docs: { description: "Keep apps independent: share code only through packages/" },
+    docs: { description: "앱을 서로 독립시킨다: 코드는 packages/로만 공유한다" },
     messages: {
       otherWorkspace:
-        "'{{source}}' reaches into another workspace. Apps share code only through packages/ ({{shared}}).",
-      packageImportsApp: "Packages must not import apps ('{{source}}').",
+        "'{{source}}'는 다른 워크스페이스를 직접 가리킨다. 앱은 packages/({{shared}})로만 코드를 공유한다.",
+      packageImportsApp: "패키지는 앱을 import할 수 없다('{{source}}').",
     },
     schema: [],
   },

@@ -5,9 +5,10 @@ import { ActivityIndicator, FlatList, Text } from "react-native";
 import { TextButton } from "../../src/components/button";
 import { ErrorView, LoadingView } from "../../src/components/feedback";
 import { orpc } from "../../src/lib/api";
+import { roleLabel } from "../../src/lib/format";
 import { PostRow, Separator } from "../../src/posts/post-row";
 
-/** A workspace board. Members only; anyone else gets NOT_FOUND from the server. */
+/** 워크스페이스 게시판. 멤버만 볼 수 있고, 그 밖의 사람은 서버에서 NOT_FOUND를 받는다. */
 export default function WorkspaceScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const workspace = useQuery(orpc.workspaces.get.queryOptions({ input: { id } }));
@@ -32,7 +33,7 @@ export default function WorkspaceScreen() {
           title: workspace.data.name,
           headerRight: () => (
             <TextButton
-              title="New post"
+              title="글쓰기"
               onPress={() => router.push({ pathname: "/posts/new", params: { workspaceId: id } })}
             />
           ),
@@ -46,7 +47,7 @@ export default function WorkspaceScreen() {
         ItemSeparatorComponent={Separator}
         ListHeaderComponent={
           <Text className="px-5 pt-3 text-xs text-neutral-500">
-            {workspace.data.members.length} members · you are {workspace.data.myRole}
+            멤버 {workspace.data.members.length}명 · 내 역할: {roleLabel[workspace.data.myRole]}
           </Text>
         }
         ListEmptyComponent={
@@ -54,7 +55,7 @@ export default function WorkspaceScreen() {
             <ActivityIndicator className="mt-16" color="#737373" />
           ) : (
             <Text className="px-8 pt-16 text-center text-base text-neutral-500">
-              No posts in this workspace yet.
+              이 워크스페이스에는 아직 글이 없어요.
             </Text>
           )
         }

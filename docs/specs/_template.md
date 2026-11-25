@@ -1,28 +1,58 @@
-# <Feature name>
+# 명세: <기능 이름>
 
-- **Status**: Draft | Approved | Done
-- **Code**: paths this spec owns (e.g. `apps/server/src/features/<feature>/`)
+- **상태:** 초안
+- **ID 접두:** <영문 대문자, 저장소에서 유일. 예: BM>
+- **코드 경로:** `<이 기능의 파일·폴더. 디렉터리는 /로 끝낸다>`
+- **승인:** <가장 최근 승인 날짜. 초안은 비운다>
 
-## Goal
+<!--
+명세는 두 가지 일만 한다. 코드를 짜기 전에 동작을 합의하고, 시나리오가 테스트의 출처가 된다.
+이 둘과 상관없는 내용(구현 방법, 코드 설명)은 쓰지 않는다.
 
-What the feature is for and who uses it, in two or three sentences.
+상태
+- 초안: 쓰거나 검토하는 중. 이 명세만 덮는 코드는 만들거나 고칠 수 없다(edit-guard와 spec-check가 막는다).
+- 승인: 사용자가 대화에서 명시적으로 승인했다. 아직 없는 코드 경로를 적어도 된다. 이때부터 테스트 먼저 구현한다.
+- 완료: 모든 시나리오에 통과하는 테스트가 있고, 코드 경로가 모두 실제로 있다.
+지운 시나리오 ID는 다시 쓰지 않는다. 번호를 당기지 않는다.
 
-## Rules
+코드 경로
+- apps·packages의 src와 apps/mobile/app의 소스는 승인·완료 명세 하나 이상이 덮어야 한다. 여러 명세가 함께 덮어도 된다.
+- apps/server/src/ 같은 넓은 경로는 적지 않는다. 기능 폴더나 파일 단위로 적는다.
 
-Business rules and invariants the code must keep. Number them so tests and reviews can point at them.
+`pnpm spec:check`가 머리말 형식, 시나리오 ↔ 테스트 연결, 코드 경로를 검사한다. 승인 규칙과 절차는 spec 스킬에 있다.
+-->
 
-## Scenarios
+## 목적
 
-Every row needs at least one test whose title starts with the ID (`it("XYZ-1 ...")`). `pnpm spec:check` enforces this.
+이 기능이 누구에게 무엇을 주는지 두세 줄로 쓴다.
 
-| ID    | Given / When | Then |
-| ----- | ------------ | ---- |
-| XYZ-1 |              |      |
+## 규칙
 
-## Contract
+모든 시나리오에서 지켜야 하는 업무 규칙과 불변식(보안·데이터 무결성·멱등성). 번호를 매겨 테스트와 리뷰가 가리킬 수 있게 한다.
 
-Procedures in `packages/contracts` and their typed errors.
+## 시나리오
 
-## Data
+행마다 제목이 그 ID로 시작하는 테스트가 하나 이상 있어야 한다(`it("XYZ-1 ...")`). 실패 경우에는 오류 코드를 적는다.
+새 기능이면 정상 흐름, 인증(401), 권한(403), 범위 밖 대상(404), 입력 검증(400), 상태 충돌(409), 멱등 재요청, 동시 요청, 클라이언트 상태(로딩·빈 목록·오류) 중 해당하는 것을 빠뜨리지 않는다.
 
-Tables, constraints and indexes.
+| ID    | 전제 / 행동 | 결과 |
+| ----- | ----------- | ---- |
+| XYZ-1 |             |      |
+
+## 계약
+
+`packages/contracts`의 절차와 타입 있는 오류.
+
+## 데이터
+
+테이블, 제약 조건, 인덱스. 바뀌는 것만 적고 마이그레이션 계획을 함께 쓴다.
+
+## 미결
+
+승인 전에 사용자가 정할 질문. 승인할 때는 비어 있어야 한다(비면 이 절을 지운다).
+
+## 변경 기록
+
+시나리오가 바뀔 때마다 한 줄씩 더한다(코드 경로만 바뀐 것은 적지 않는다).
+
+- YYYY-MM-DD: <요약> (<바뀐 시나리오 ID>, 사용자 승인 | 사용자 요청)

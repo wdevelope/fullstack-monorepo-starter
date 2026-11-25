@@ -1,5 +1,6 @@
 #!/bin/sh
-# Enabled by `pnpm install` (prepare script sets core.hooksPath). Do not bypass with --no-verify.
+# `pnpm install`이 켠다(prepare 스크립트가 core.hooksPath를 설정). --no-verify로 건너뛰지 않는다.
+# 순서: 커밋 가드(타입 탈출구·비밀값·마이그레이션) → 명세 검사 → 스테이징한 파일의 Prettier·ESLint
 set -e
 node tooling/harness/commit-guard.mjs --staged
 node tooling/harness/spec-check.mjs

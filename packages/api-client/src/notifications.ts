@@ -3,13 +3,13 @@ import type { ContractRouterClient } from "@orpc/contract";
 import type { Contract, NotificationEvent } from "@starter/contracts";
 
 export interface WatchNotificationsOptions {
-  /** Called for every event: `ready` on each (re)connect, then each notification. */
+  /** 이벤트마다 불린다. (다시) 연결할 때마다 `ready`가 오고, 그 뒤로 알림마다 온다. */
   onEvent(event: NotificationEvent): void;
-  /** Aborting stops watching and closes the open stream. */
+  /** 중단하면 감시를 멈추고 열린 스트림을 닫는다. */
   signal: AbortSignal;
-  /** Network and server errors; the helper retries after them. */
+  /** 네트워크·서버 오류다. 헬퍼는 이 오류 뒤에 다시 시도한다. */
   onError?(error: unknown): void;
-  /** Delay before retry number `attempt` (1, 2, ...). Defaults to 1s doubling up to 30s. */
+  /** `attempt`번째(1, 2, ...) 재시도 전 대기 시간이다. 기본값은 1초에서 두 배씩 늘어 30초까지 간다. */
   retryDelayMs?(attempt: number): number;
 }
 
@@ -28,15 +28,15 @@ function sleep(ms: number, signal: AbortSignal) {
 }
 
 /**
- * Keeps the notification stream open for as long as the user is signed in.
+ * 사용자가 로그인해 있는 동안 알림 스트림을 열어 둔다.
  *
- * - The server ends the stream when the access token expires; the helper reopens it at once. The
- *   api client sees the expired token's UNAUTHORIZED, refreshes once and retries the open.
- * - Network and server errors back off exponentially, reset after a successful `ready`.
- * - UNAUTHORIZED that survives the refresh means the session is over, so the helper stops.
+ * - 서버는 액세스 토큰이 만료되면 스트림을 끝내고, 헬퍼는 곧바로 다시 연다. API 클라이언트는
+ *   만료된 토큰의 UNAUTHORIZED를 보고 한 번 리프레시한 뒤 열기를 다시 시도한다.
+ * - 네트워크·서버 오류에는 지수적으로 간격을 늘려 다시 시도하고, `ready`를 받으면 간격을 되돌린다.
+ * - 리프레시한 뒤에도 UNAUTHORIZED가 나면 세션이 끝난 것이므로 헬퍼가 멈춘다.
  *
- * Resolves when stopped. Every reconnect starts with `ready`, so refetch the inbox on it to catch
- * anything sent while disconnected.
+ * 멈추면 resolve된다. 다시 연결할 때마다 `ready`로 시작하므로, 이때 알림함을 다시 가져와
+ * 끊긴 동안 온 것을 놓치지 않는다.
  */
 export async function watchNotifications(
   api: ContractRouterClient<Contract>,
@@ -55,7 +55,7 @@ export async function watchNotifications(
     try {
       const events = await api.notifications.stream(undefined, { signal });
       while (true) {
-        // Do not depend on the transport noticing the abort while a read is pending.
+        // 읽기가 대기 중일 때 전송 계층이 중단을 알아챈다고 기대하지 않는다.
         const next = await Promise.race([events.next(), aborted]);
         if (next === "aborted") {
           void events.return?.(undefined).catch(() => {});

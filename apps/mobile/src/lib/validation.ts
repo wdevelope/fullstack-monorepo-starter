@@ -1,6 +1,6 @@
 import { emailSchema, nicknameSchema, passwordSchema, postInputSchema } from "@starter/contracts";
 
-// Forms run the contract's own schemas, so the limits shown here are the ones the server enforces.
+// 폼은 계약의 스키마를 그대로 실행하므로, 여기서 보이는 제한값이 곧 서버가 강제하는 값이다.
 type Issue = NonNullable<ReturnType<typeof emailSchema.safeParse>["error"]>["issues"][number];
 type Check = { success: true } | { success: false; error: { issues: Issue[] } };
 
@@ -10,14 +10,16 @@ function describeIssue(issue: Issue): string {
   switch (issue.code) {
     case "too_small":
       return Number(issue.minimum) <= 1
-        ? "Required."
-        : `Use at least ${issue.minimum.toLocaleString("en-US")} characters.`;
+        ? "입력해 주세요."
+        : `${issue.minimum.toLocaleString("ko-KR")}자 이상 입력해 주세요.`;
     case "too_big":
-      return `Use at most ${issue.maximum.toLocaleString("en-US")} characters.`;
+      return `${issue.maximum.toLocaleString("ko-KR")}자 이하로 입력해 주세요.`;
     case "invalid_format":
-      return issue.format === "email" ? "Enter a valid email address." : "Invalid format.";
+      return issue.format === "email"
+        ? "올바른 이메일 주소를 입력해 주세요."
+        : "형식이 올바르지 않아요.";
     default:
-      return "Invalid value.";
+      return "올바르지 않은 값이에요.";
   }
 }
 
@@ -26,7 +28,7 @@ function problem(check: Check): string | undefined {
   return issue && describeIssue(issue);
 }
 
-/** Keeps the fields that have a problem, or returns null when every field is valid. */
+/** 문제가 있는 필드만 남기고, 모든 필드가 올바르면 null을 돌려준다. */
 function collect<K extends string>(fields: Record<K, string | undefined>): FieldErrors<K> | null {
   const invalid = Object.entries(fields).filter(([, message]) => message !== undefined);
   return invalid.length > 0 ? (Object.fromEntries(invalid) as FieldErrors<K>) : null;
@@ -40,11 +42,11 @@ export function validateSignUp(values: { email: string; password: string; nickna
   });
 }
 
-/** Sign-in checks only that both fields are filled; the password rules apply at sign-up. */
+/** 로그인은 두 필드가 채워졌는지만 본다. 비밀번호 규칙은 가입 때 적용한다. */
 export function validateSignIn(values: { email: string; password: string }) {
   return collect({
     email: problem(emailSchema.safeParse(values.email)),
-    password: values.password ? undefined : "Required.",
+    password: values.password ? undefined : "입력해 주세요.",
   });
 }
 

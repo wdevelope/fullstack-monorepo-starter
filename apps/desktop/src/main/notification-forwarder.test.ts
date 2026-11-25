@@ -49,8 +49,8 @@ function setUp(initialUser: User | null) {
   return { watches, sent, shown, stop, setUser };
 }
 
-describe("notification forwarder", () => {
-  it("NOTI-6 forwards stream events to the renderer and shows a system notification", () => {
+describe("알림 전달기", () => {
+  it("NOTI-6 스트림 이벤트를 렌더러에 전달하고 시스템 알림을 띄운다", () => {
     const { watches, sent, shown } = setUp(alice);
     expect(watches).toHaveLength(1);
 
@@ -61,7 +61,7 @@ describe("notification forwarder", () => {
     expect(shown).toEqual([notification]);
   });
 
-  it("NOTI-8 watches only while signed in and restarts for a different user", () => {
+  it("NOTI-8 로그인한 동안에만 구독하고 사용자가 바뀌면 다시 시작한다", () => {
     const { watches, setUser, stop } = setUp(null);
     expect(watches).toHaveLength(0);
 

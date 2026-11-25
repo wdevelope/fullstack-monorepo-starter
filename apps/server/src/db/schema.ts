@@ -11,7 +11,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
-// Millisecond precision matches JavaScript Date, so keyset cursors round-trip exactly.
+// 밀리초 정밀도는 JavaScript Date와 같으므로 keyset 커서가 값을 정확히 주고받는다.
 const ts = { withTimezone: true, precision: 3 } as const;
 
 export const users = pgTable("users", {
@@ -62,7 +62,7 @@ export const workspaceMembers = pgTable(
   (t) => [
     primaryKey({ columns: [t.workspaceId, t.userId] }),
     check("workspace_members_role_check", sql`${t.role} IN ('owner', 'admin', 'member')`),
-    // Exactly one owner per workspace (WS rule 1).
+    // 워크스페이스마다 소유자는 정확히 한 명이다(WS 규칙 1).
     uniqueIndex("workspace_members_one_owner")
       .on(t.workspaceId)
       .where(sql`${t.role} = 'owner'`),
@@ -77,7 +77,7 @@ export const posts = pgTable(
     authorId: uuid()
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    /** `null` is the public board. */
+    /** `null`이면 공개 게시판이다. */
     workspaceId: uuid().references(() => workspaces.id, { onDelete: "cascade" }),
     title: text().notNull(),
     body: text().notNull(),
@@ -141,15 +141,15 @@ export const notifications = pgTable(
   (t) => [
     check("notifications_type_check", sql`${t.type} IN ('comment', 'like')`),
     index().on(t.recipientId, t.createdAt.desc(), t.id.desc()),
-    // Cascading deletes of posts and comments find their notifications through these.
+    // 글과 댓글을 연쇄 삭제할 때 이 인덱스로 해당 알림을 찾는다.
     index().on(t.postId),
     index().on(t.commentId),
-    // One like notification per liker and post, even after unlike and like (NOTI rule 2).
+    // 좋아요를 취소했다가 다시 눌러도 누른 사람과 글 한 쌍에 좋아요 알림은 하나다(NOTI 규칙 2).
     uniqueIndex("notifications_one_like_per_actor")
       .on(t.postId, t.actorId)
       .where(sql`${t.type} = 'like'`),
   ],
 );
 
-/** Tables the integration tests empty between cases, children first. */
+/** 통합 테스트가 케이스마다 비우는 테이블이다. 자식 테이블이 먼저 온다. */
 export const allTables = sql`notifications, post_likes, comments, posts, workspace_members, workspaces, refresh_tokens, users`;

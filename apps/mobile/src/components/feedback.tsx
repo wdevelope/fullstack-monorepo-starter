@@ -29,7 +29,7 @@ export function ErrorView({ error, onRetry }: { error: unknown; onRetry: () => v
       <Text className="text-center text-base leading-6 text-neutral-600">
         {errorMessage(error)}
       </Text>
-      <Button title="Try again" variant="secondary" compact onPress={onRetry} />
+      <Button title="다시 시도" variant="secondary" compact onPress={onRetry} />
     </View>
   );
 }

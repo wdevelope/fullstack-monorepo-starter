@@ -11,8 +11,8 @@ afterAll(() => t.close());
 
 const anonymous = () => t.client({ kind: "native" });
 
-describe("listing posts", () => {
-  /** Inserts posts one minute apart so the expected order does not depend on timing. */
+describe("글 목록", () => {
+  /** 기대하는 순서가 실행 시점에 좌우되지 않도록 글을 1분 간격으로 넣는다. */
   async function seedPosts(authorId: string, count: number) {
     const start = Date.UTC(2026, 0, 1);
     const rows = Array.from({ length: count }, (_, i) => ({
@@ -24,7 +24,7 @@ describe("listing posts", () => {
     await t.db.insert(posts).values(rows);
   }
 
-  it("COM-1 pages through posts newest first until nextCursor is null", async () => {
+  it("COM-1 nextCursor가 null이 될 때까지 최신순으로 페이지를 넘긴다", async () => {
     const { session } = await t.signUp();
     await seedPosts(session.user.id, 5);
 
@@ -40,7 +40,7 @@ describe("listing posts", () => {
     expect(titles).toEqual(["Post 5", "Post 4", "Post 3", "Post 2", "Post 1"]);
   });
 
-  it("COM-1 keeps later pages stable when a new post arrives between requests", async () => {
+  it("COM-1 요청 사이에 새 글이 들어와도 다음 페이지가 밀리지 않는다", async () => {
     const { session, api } = await t.signUp();
     await seedPosts(session.user.id, 3);
 
@@ -53,7 +53,7 @@ describe("listing posts", () => {
     expect(second.nextCursor).toBeNull();
   });
 
-  it("COM-2 rejects a malformed cursor", async () => {
+  it("COM-2 형식이 틀린 커서를 거부한다", async () => {
     for (const cursor of ["not-base64-json", Buffer.from('["x","y"]').toString("base64url")]) {
       await expect(anonymous().posts.list({ cursor })).rejects.toMatchObject({
         code: "BAD_REQUEST",
@@ -61,7 +61,7 @@ describe("listing posts", () => {
     }
   });
 
-  it("COM-11 includes an excerpt and comment and like counts", async () => {
+  it("COM-11 본문 발췌, 댓글 수, 좋아요 수를 담는다", async () => {
     const { api } = await t.signUp();
     const other = await t.signUp();
     const { id } = await api.posts.create({ title: "Counts", body: "x".repeat(500) });
@@ -79,8 +79,8 @@ describe("listing posts", () => {
   });
 });
 
-describe("reading a post", () => {
-  it("COM-3 returns the body, comments oldest first and likedByMe for the caller", async () => {
+describe("글 읽기", () => {
+  it("COM-3 본문, 오래된 순 댓글, 호출자의 likedByMe를 돌려준다", async () => {
     const author = await t.signUp("author");
     const reader = await t.signUp("reader");
     const { id } = await author.api.posts.create({ title: "Hello", body: "World" });
@@ -105,7 +105,7 @@ describe("reading a post", () => {
     expect((await anonymous().posts.get({ id })).likedByMe).toBe(false);
   });
 
-  it("COM-4 returns NOT_FOUND for a post that does not exist", async () => {
+  it("COM-4 없는 글이면 NOT_FOUND를 돌려준다", async () => {
     await expect(anonymous().posts.get({ id: randomUUID() })).rejects.toMatchObject({
       code: "NOT_FOUND",
       status: 404,
@@ -113,8 +113,8 @@ describe("reading a post", () => {
   });
 });
 
-describe("writing posts", () => {
-  it("COM-5 requires sign-in and stores trimmed text", async () => {
+describe("글쓰기", () => {
+  it("COM-5 로그인이 필요하고, 앞뒤 공백을 지운 텍스트를 저장한다", async () => {
     await expect(anonymous().posts.create({ title: "Hi", body: "There" })).rejects.toMatchObject({
       code: "UNAUTHORIZED",
     });
@@ -128,7 +128,7 @@ describe("writing posts", () => {
     });
   });
 
-  it("COM-6 lets only the author edit or delete, and reports missing posts", async () => {
+  it("COM-6 작성자만 고치거나 지울 수 있고, 없는 글은 NOT_FOUND로 알린다", async () => {
     const author = await t.signUp();
     const other = await t.signUp();
     const { id } = await author.api.posts.create({ title: "Mine", body: "Body" });
@@ -145,7 +145,7 @@ describe("writing posts", () => {
     expect((await anonymous().posts.get({ id })).title).toBe("Edited");
   });
 
-  it("COM-7 deleting a post removes its comments and likes", async () => {
+  it("COM-7 글을 지우면 댓글과 좋아요도 사라진다", async () => {
     const { api } = await t.signUp();
     const { id } = await api.posts.create({ title: "Short-lived", body: "Body" });
     await api.comments.create({ postId: id, body: "comment" });
@@ -159,8 +159,8 @@ describe("writing posts", () => {
   });
 });
 
-describe("likes", () => {
-  it("COM-8 liking and unliking twice changes nothing the second time", async () => {
+describe("좋아요", () => {
+  it("COM-8 좋아요와 좋아요 취소를 두 번 해도 두 번째는 아무것도 바꾸지 않는다", async () => {
     const { api } = await t.signUp();
     const other = await t.signUp();
     const { id } = await api.posts.create({ title: "Likeable", body: "Body" });

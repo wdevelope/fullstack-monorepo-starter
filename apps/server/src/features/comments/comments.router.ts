@@ -9,8 +9,8 @@ export const commentsRouter = {
   create: base.comments.create.use(requireUser).handler(async ({ input, context, errors }) => {
     const { postId, body } = input;
     const userId = context.userId;
-    // The comment and its notification commit together (NOTI rule 3). The insert selects from
-    // the post with the access check, so a caller who cannot read the post inserts nothing.
+    // 댓글과 그 알림은 함께 커밋된다(NOTI 규칙 3). INSERT가 접근 확인을 붙여 글에서 SELECT하므로,
+    // 글을 읽을 수 없는 호출자는 아무것도 넣지 못한다.
     const comment = await context.db.transaction(async (tx) => {
       const inserted = await tx.execute<{ id: string }>(sql`
         INSERT INTO ${comments} (post_id, author_id, body)
@@ -38,7 +38,7 @@ export const commentsRouter = {
     return comment;
   }),
 
-  /** The author deletes; in a workspace its admins and owner can too. Its notifications cascade. */
+  /** 작성자가 지운다. 워크스페이스에서는 그 관리자와 소유자도 지울 수 있다. 댓글의 알림은 연쇄로 지워진다. */
   delete: base.comments.delete.use(requireUser).handler(async ({ input, context, errors }) => {
     const userId = context.userId;
     const deleted = await context.db

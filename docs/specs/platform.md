@@ -1,0 +1,29 @@
+# 명세: 공통 기반
+
+- **상태:** 완료
+- **ID 접두:** PLAT
+- **코드 경로:** `packages/contracts/src/index.ts`, `apps/server/src/main.ts`, `apps/server/src/router.ts`, `apps/server/src/migrate-command.ts`, `apps/server/src/db/schema.ts`, `apps/server/src/platform/`, `apps/web/src/main.tsx`, `apps/web/src/router.tsx`, `apps/web/src/routes/layout.tsx`, `apps/web/src/components/`, `apps/web/src/lib/`, `apps/desktop/src/renderer/main.tsx`, `apps/desktop/src/renderer/App.tsx`, `apps/desktop/src/renderer/components/`, `apps/mobile/app/_layout.tsx`, `apps/mobile/src/components/`, `apps/mobile/src/lib/`
+- **승인:** 2026-11-25
+
+## 목적
+
+여러 기능이 함께 쓰는 기반 코드(서버 부트스트랩·DB 연결·라우터 조립, 클라이언트 앱 셸·공용 UI·오류 문구·시간 표시)를 소유하고, 사용자에게 보이는 공통 동작을 정한다. 기능 고유의 동작은 각 기능 명세에 둔다.
+
+## 규칙
+
+1. 사용자에게 보이는 문구는 한국어다. 서버의 내부 사정(스택, 예상하지 못한 오류 메시지)은 화면에 보이지 않는다.
+2. 서버가 의도해서 돌려준 오류(4xx)는 다시 시도해도 결과가 같으므로 재시도하지 않는다.
+3. 시각은 상대 시간(방금, N분 전…)으로 보이고, 오래된 것은 날짜로 보인다.
+
+## 시나리오
+
+| ID     | 전제 / 행동                                   | 결과                                                                                              |
+| ------ | --------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| PLAT-1 | API 오류가 아닌 실패(네트워크 끊김 등)가 난다 | "서버에 연결할 수 없다"는 연결 문제 문구를 보인다                                                 |
+| PLAT-2 | 서버가 예상하지 못한 오류를 돌려준다          | 서버 메시지를 숨기고 일반 오류 문구를 보인다                                                      |
+| PLAT-3 | 모바일 조회가 실패한다                        | 서버가 의도한 오류는 재시도하지 않고, 네트워크·서버 오류는 두 번까지 다시 시도한다                |
+| PLAT-4 | 글·댓글·알림의 시각을 보인다                  | 최근이면 짧은 상대 시간, 오래되면 날짜(연도는 올해가 아닐 때만). 기기보다 조금 앞선 시각은 "방금" |
+
+## 변경 기록
+
+- 2026-11-25: 공통 기반 코드의 소유와 이미 테스트하던 공통 동작을 명세로 옮김 (PLAT-1~4, 동작 변경 없음)

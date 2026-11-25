@@ -5,7 +5,7 @@ import { useSyncExternalStore } from "react";
 
 const apiUrl = import.meta.env.VITE_API_URL || `${window.location.origin}/rpc`;
 
-/** One session per tab. The refresh token lives in an HttpOnly cookie the page cannot read. */
+/** 탭마다 세션이 하나다. 리프레시 토큰은 페이지가 읽을 수 없는 HttpOnly 쿠키에 있다. */
 export const client = createApiClient({ url: apiUrl, clientKind: "web" });
 
 export const orpc = createTanstackQueryUtils(client.api);

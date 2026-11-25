@@ -8,8 +8,8 @@ import { createBridgeLink } from "./bridge-link.ts";
 
 const POST_ID = "00000000-0000-4000-8000-0000000000aa";
 
-describe("bridge link", () => {
-  it("sends the dotted path and input to main and returns the data", async () => {
+describe("브리지 링크", () => {
+  it("DESK-2 점 경로와 입력을 메인에 보내고 데이터를 돌려준다", async () => {
     const createdAt = new Date("2026-01-01T00:00:00Z");
     const rpc = vi.fn<DesktopBridge["rpc"]>(async () =>
       structuredClone({ ok: true as const, data: { id: POST_ID, createdAt } }),
@@ -22,7 +22,7 @@ describe("bridge link", () => {
     expect(result).toEqual({ id: POST_ID, createdAt });
   });
 
-  it("rethrows main's error as a typed ORPCError", async () => {
+  it("DESK-5 메인의 오류를 타입 있는 ORPCError로 다시 던진다", async () => {
     const error = new ORPCError("FORBIDDEN", {
       defined: true,
       status: 403,

@@ -14,7 +14,7 @@ import { testDatabaseUrl } from "./database-url.ts";
 export const TEST_JWT_SECRET = "test-secret-that-is-at-least-32-characters";
 export type Api = ContractRouterClient<Contract>;
 
-/** A minimal browser-like cookie store: remembers Set-Cookie values and sends them back. */
+/** 브라우저를 흉내 낸 최소한의 쿠키 저장소다. Set-Cookie 값을 기억했다가 다시 보낸다. */
 export class CookieJar {
   readonly cookies = new Map<string, string>();
   readonly received: string[] = [];
@@ -35,16 +35,16 @@ export class CookieJar {
 }
 
 interface ClientOptions {
-  /** `null` sends no client-kind header at all. */
+  /** `null`이면 client-kind 헤더를 아예 보내지 않는다. */
   kind: ClientKind | null;
   accessToken?: string;
   jar?: CookieJar;
 }
 
 /**
- * Boots the real HTTP app against the test database with a controllable clock and a cheap
- * password hash. Calls go through `app.fetch`, so routing, CORS, cookies and validation are real.
- * Each test app has its own notification hub (its own LISTEN connection), like a server instance.
+ * 테스트 데이터베이스에 붙은 실제 HTTP 앱을, 조절할 수 있는 시계와 값싼 비밀번호 해시로 띄운다.
+ * 호출은 `app.fetch`를 거치므로 라우팅, CORS, 쿠키, 검증이 모두 실제와 같다.
+ * 테스트 앱마다 서버 인스턴스처럼 자기 알림 허브(자기 LISTEN 연결)를 가진다.
  */
 export function createTestApp() {
   let now = new Date();
@@ -80,7 +80,7 @@ export function createTestApp() {
   }
 
   let counter = 0;
-  /** Signs up a fresh user as a native client and returns an API client acting as that user. */
+  /** 새 사용자를 네이티브 클라이언트로 가입시키고, 그 사용자로 호출하는 API 클라이언트를 돌려준다. */
   async function signUp(nickname = `user${++counter}`) {
     const session = await client({ kind: "native" }).auth.signup({
       email: `${nickname}@example.com`,
@@ -98,7 +98,7 @@ export function createTestApp() {
     advanceClock(ms: number) {
       now = new Date(now.getTime() + ms);
     },
-    /** Resolves once the notification hub is LISTENing. */
+    /** 알림 허브가 LISTEN을 시작하면 resolve된다. */
     ready: () => notificationHub.ready(),
     async reset() {
       now = new Date();

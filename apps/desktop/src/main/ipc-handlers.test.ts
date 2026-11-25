@@ -13,7 +13,7 @@ const user: User = {
 };
 const POST_ID = "00000000-0000-4000-8000-0000000000aa";
 
-/** An api client whose transport records calls instead of using the network. */
+/** 네트워크를 쓰는 대신 호출을 기록하는 전송 계층을 가진 api 클라이언트. */
 function fakeApiClient(options: {
   signedIn?: boolean;
   respond?: (path: string, input: unknown) => unknown;
@@ -38,8 +38,8 @@ function fakeApiClient(options: {
   return { client, calls, handlers: createIpcHandlers(client) };
 }
 
-describe("rpc allowlist", () => {
-  it("allows exactly the non-session procedures", () => {
+describe("rpc 허용 목록", () => {
+  it("DESK-1 세션 절차를 뺀 절차만 정확히 허용한다", () => {
     expect([...RPC_PATHS].sort()).toEqual([
       "auth.me",
       "comments.create",
@@ -64,7 +64,7 @@ describe("rpc allowlist", () => {
     ]);
   });
 
-  it("WS-3 forwards workspace calls with the email normalised by the contract", async () => {
+  it("WS-3 워크스페이스 호출은 계약이 정규화한 이메일로 전달한다", async () => {
     const { handlers, calls } = fakeApiClient({});
     const input = { workspaceId: POST_ID, email: " Bob@Example.com " };
 
@@ -75,7 +75,7 @@ describe("rpc allowlist", () => {
     ]);
   });
 
-  it("NOTI-6 keeps the stream out of rpc: main owns it and forwards events", async () => {
+  it("NOTI-6 스트림은 rpc로 부를 수 없다: 메인이 갖고 이벤트를 전달한다", async () => {
     const { handlers, calls } = fakeApiClient({});
 
     const result = await handlers.rpc("notifications.stream", undefined);
@@ -84,7 +84,7 @@ describe("rpc allowlist", () => {
     expect(calls).toEqual([]);
   });
 
-  it("forwards an allowed call with the input parsed by the contract", async () => {
+  it("DESK-2 허용된 호출은 계약으로 파싱한 입력으로 전달한다", async () => {
     const page = { items: [], nextCursor: null };
     const { handlers, calls } = fakeApiClient({ respond: () => page });
 
@@ -95,7 +95,7 @@ describe("rpc allowlist", () => {
   });
 
   it.each(["auth.signup", "auth.login", "auth.refresh", "auth.logout"])(
-    "rejects the session procedure %s so tokens never cross IPC",
+    "DESK-1 세션 절차 %s는 거부해 토큰이 IPC를 건너지 않게 한다",
     async (path) => {
       const { handlers, calls } = fakeApiClient({});
 
@@ -116,7 +116,7 @@ describe("rpc allowlist", () => {
     ["posts", "list"],
     42,
     undefined,
-  ])("rejects the path %j", async (path) => {
+  ])("DESK-1 허용 목록에 없는 경로 %j는 거부한다", async (path) => {
     const { handlers, calls } = fakeApiClient({});
 
     const result = await handlers.rpc(path, {});
@@ -125,7 +125,7 @@ describe("rpc allowlist", () => {
     expect(calls).toEqual([]);
   });
 
-  it("rejects invalid input before it reaches the network", async () => {
+  it("DESK-3 틀린 입력은 네트워크에 닿기 전에 거부한다", async () => {
     const { handlers, calls } = fakeApiClient({});
 
     const result = await handlers.rpc("posts.get", { id: "not-a-uuid" });
@@ -137,7 +137,7 @@ describe("rpc allowlist", () => {
     expect(calls).toEqual([]);
   });
 
-  it("does not forward renderer input to procedures that take none", async () => {
+  it("DESK-4 입력이 없는 절차에는 렌더러가 보낸 입력을 전달하지 않는다", async () => {
     const { handlers, calls } = fakeApiClient({ respond: () => user });
 
     await handlers.rpc("auth.me", { anything: true });
@@ -145,10 +145,14 @@ describe("rpc allowlist", () => {
     expect(calls).toEqual([{ path: "auth.me", input: undefined }]);
   });
 
-  it("passes typed server errors through with their fields", async () => {
+  it("DESK-5 서버의 타입 있는 오류는 필드를 그대로 유지해 넘긴다", async () => {
     const { handlers } = fakeApiClient({
       respond: () => {
-        throw new ORPCError("NOT_FOUND", { defined: true, status: 404, message: "Not found." });
+        throw new ORPCError("NOT_FOUND", {
+          defined: true,
+          status: 404,
+          message: "요청한 내용을 찾을 수 없어요.",
+        });
       },
     });
 
@@ -160,15 +164,15 @@ describe("rpc allowlist", () => {
         defined: true,
         code: "NOT_FOUND",
         status: 404,
-        message: "Not found.",
+        message: "요청한 내용을 찾을 수 없어요.",
         data: undefined,
       },
     });
   });
 });
 
-describe("session handlers", () => {
-  it("signs in with input parsed by the contract and returns the user", async () => {
+describe("세션 핸들러", () => {
+  it("DESK-9 계약으로 파싱한 입력으로 로그인하고 사용자를 돌려준다", async () => {
     const { handlers, client } = fakeApiClient({});
 
     const result = await handlers.signIn({ email: "  A@Example.com ", password: "password1" });
@@ -177,7 +181,7 @@ describe("session handlers", () => {
     expect(client.signIn).toHaveBeenCalledWith({ email: "a@example.com", password: "password1" });
   });
 
-  it("rejects malformed sign-up input without calling the server", async () => {
+  it("DESK-3 형식이 틀린 회원가입 입력은 서버를 부르지 않고 거부한다", async () => {
     const { handlers, client } = fakeApiClient({});
 
     const result = await handlers.signUp({ email: "nope", password: "short", nickname: "a" });
@@ -186,21 +190,21 @@ describe("session handlers", () => {
     expect(client.signUp).not.toHaveBeenCalled();
   });
 
-  it("restores from the live session instead of rotating the refresh token again", async () => {
+  it("DESK-10 살아 있는 세션이 있으면 리프레시 토큰을 다시 회전하지 않고 그 세션으로 복원한다", async () => {
     const { handlers, client } = fakeApiClient({ signedIn: true });
 
     expect(await handlers.restore()).toEqual({ ok: true, data: user });
     expect(client.restore).not.toHaveBeenCalled();
   });
 
-  it("restores from the stored refresh token on launch", async () => {
+  it("DESK-10 앱을 시작할 때는 저장된 리프레시 토큰으로 복원한다", async () => {
     const { handlers, client } = fakeApiClient({ signedIn: false });
 
     expect(await handlers.restore()).toEqual({ ok: true, data: user });
     expect(client.restore).toHaveBeenCalledOnce();
   });
 
-  it("returns null after signing out", async () => {
+  it("DESK-10 로그아웃한 뒤에는 null을 돌려준다", async () => {
     const { handlers, client } = fakeApiClient({ signedIn: true });
 
     expect(await handlers.signOut()).toEqual({ ok: true, data: null });

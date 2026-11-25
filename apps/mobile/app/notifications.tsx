@@ -10,7 +10,7 @@ import { orpc, queryClient } from "../src/lib/api";
 import { formatRelativeTime, notificationText } from "../src/lib/format";
 import { useUser } from "../src/session/use-user";
 
-/** The inbox. Mobile has no live stream yet, so it refreshes whenever the screen gains focus. */
+/** 알림함. 모바일에는 아직 실시간 스트림이 없어 화면에 포커스가 올 때마다 새로 읽는다. */
 export default function NotificationsScreen() {
   const user = useUser();
   const list = useQuery(orpc.notifications.list.queryOptions({ input: { limit: 50 } }));
@@ -46,7 +46,7 @@ export default function NotificationsScreen() {
         options={{
           headerRight: () => (
             <TextButton
-              title="Mark all read"
+              title="모두 읽음"
               disabled={markRead.isPending}
               onPress={() => markRead.mutate({})}
             />
@@ -59,7 +59,7 @@ export default function NotificationsScreen() {
         keyExtractor={(notification) => notification.id}
         ListEmptyComponent={
           <Text className="px-8 pt-16 text-center text-base text-neutral-500">
-            No notifications yet.
+            아직 알림이 없어요.
           </Text>
         }
         renderItem={({ item }) => (

@@ -1,18 +1,28 @@
+const DAY = 24 * 3600;
+
 const units: [Intl.RelativeTimeFormatUnit, number][] = [
-  ["year", 365 * 24 * 3600],
-  ["month", 30 * 24 * 3600],
-  ["day", 24 * 3600],
+  ["day", DAY],
   ["hour", 3600],
   ["minute", 60],
 ];
 
-const format = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
+const format = new Intl.RelativeTimeFormat("ko", { numeric: "auto" });
+const dateFormat = new Intl.DateTimeFormat("ko", { month: "long", day: "numeric" });
+const dateWithYearFormat = new Intl.DateTimeFormat("ko", {
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+});
 
-/** "3 hours ago", "yesterday", "just now". */
+/** "방금", "3분 전", "3시간 전", "어제". 그보다 오래되면 "11월 5일"이고, 올해가 아니면 "2025년 11월 5일"이다. */
 export function timeAgo(date: Date, now: Date = new Date()): string {
   const seconds = Math.round((date.getTime() - now.getTime()) / 1000);
+  if (seconds <= -2 * DAY) {
+    const sameYear = date.getFullYear() === now.getFullYear();
+    return (sameYear ? dateFormat : dateWithYearFormat).format(date);
+  }
   for (const [unit, size] of units) {
     if (Math.abs(seconds) >= size) return format.format(Math.trunc(seconds / size), unit);
   }
-  return "just now";
+  return "방금";
 }

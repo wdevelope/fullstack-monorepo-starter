@@ -4,7 +4,7 @@ import * as z from "zod";
 export const notificationTypeSchema = z.enum(["comment", "like"]);
 export type NotificationType = z.infer<typeof notificationTypeSchema>;
 
-/** Names the actor and the post, never the comment text (NOTI rule 8). */
+/** 행동한 사람과 글만 알려 주고, 댓글 내용은 절대 담지 않는다(NOTI 규칙 8). */
 export const notificationSchema = z.object({
   id: z.uuid(),
   type: notificationTypeSchema,
@@ -16,8 +16,8 @@ export const notificationSchema = z.object({
 export type Notification = z.infer<typeof notificationSchema>;
 
 /**
- * What the stream sends. `ready` comes first, once the server is listening for this user, so a
- * client that (re)connects knows the unread count and can refetch anything it missed while away.
+ * 스트림이 보내는 이벤트다. 서버가 이 사용자의 알림을 듣기 시작하면 `ready`가 가장 먼저 온다.
+ * 그래서 (다시) 연결한 클라이언트는 읽지 않은 개수를 알고, 끊긴 동안 놓친 것을 다시 가져올 수 있다.
  */
 export const notificationEventSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("ready"), unreadCount: z.number().int() }),
@@ -41,11 +41,11 @@ export const notificationsContract = {
 
   unreadCount: oc.output(z.object({ count: z.number().int() })),
 
-  /** Without `ids`, marks every notification read. IDs of other users' notifications are ignored. */
+  /** `ids`가 없으면 모든 알림을 읽음 처리한다. 다른 사용자 알림의 ID는 무시한다. */
   markRead: oc
     .input(z.object({ ids: z.array(z.uuid()).min(1).max(100).optional() }))
     .output(z.object({ unreadCount: z.number().int() })),
 
-  /** Server-Sent Events. Ends when the access token expires; reconnect with a fresh one. */
+  /** Server-Sent Events다. 액세스 토큰이 만료되면 끝나므로 새 토큰으로 다시 연결한다. */
   stream: oc.output(eventIterator(notificationEventSchema)),
 };

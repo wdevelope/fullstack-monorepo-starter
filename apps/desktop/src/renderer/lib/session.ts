@@ -16,7 +16,7 @@ function setState(next: SessionState) {
   const previousUserId = state.status === "ready" ? state.user?.id : undefined;
   state = next;
   for (const listener of listeners) listener();
-  // Posts carry `likedByMe`, which depends on who is asking.
+  // 글에는 묻는 사람에 따라 달라지는 `likedByMe`가 있다.
   const userId = next.status === "ready" ? next.user?.id : undefined;
   if (userId !== previousUserId) void queryClient.invalidateQueries();
 }
@@ -25,7 +25,7 @@ function setUser(user: User | null) {
   setState({ status: "ready", user, restoreError: null });
 }
 
-// Main also changes the session on its own, e.g. it signs out when the server rejects the refresh token.
+// 메인도 스스로 세션을 바꾼다. 예를 들어 서버가 리프레시 토큰을 거부하면 로그아웃한다.
 bridge.onUserChange(setUser);
 
 export async function restoreSession() {
@@ -47,7 +47,7 @@ export async function signUp(input: SignUpInput) {
 }
 
 export async function signOut() {
-  // Main clears the session even when the server is unreachable, so the result needs no handling.
+  // 서버에 닿지 못해도 메인이 세션을 지우므로 결과를 처리할 필요가 없다.
   await bridge.signOut();
   setUser(null);
 }

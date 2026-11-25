@@ -3,9 +3,9 @@
   "compilerOptions": {
     "strict": true,
     "noUncheckedIndexedAccess": true,
-    // Workspace packages ship TypeScript source that imports "./auth.ts" style paths.
+    // 워크스페이스 패키지는 "./auth.ts" 형태의 경로를 import하는 TypeScript 소스를 그대로 내보낸다.
     "allowImportingTsExtensions": true,
-    // Expo writes expo-env.d.ts only when typed routes are on; reference its globals directly.
+    // Expo는 typed routes가 켜져 있을 때만 expo-env.d.ts를 쓰므로, 그 전역 타입을 직접 참조한다.
     "types": ["expo/types"]
   },
   "include": ["**/*.ts", "**/*.tsx", "vitest.config.mts", "nativewind-env.d.ts"]

@@ -13,8 +13,8 @@ const user = {
 };
 
 /**
- * A fake server built from the real contract. Only the latest access token (`access-N`) and
- * refresh token (`refresh-M`) are valid, like the real rotation.
+ * 실제 계약으로 만든 가짜 서버다. 실제 회전처럼 가장 최근의 액세스 토큰(`access-N`)과
+ * 리프레시 토큰(`refresh-M`)만 유효하다.
  */
 function createFakeServer() {
   const state = { access: 0, refresh: 0, refreshCalls: 0 };
@@ -71,7 +71,7 @@ function createFakeServer() {
   return {
     state,
     fetch: fetch as typeof globalThis.fetch,
-    /** The access token stops working; the refresh token still works. */
+    /** 액세스 토큰은 더 쓸 수 없고, 리프레시 토큰은 여전히 쓸 수 있다. */
     expireAccessToken: () => state.access++,
   };
 }
@@ -88,7 +88,7 @@ function memoryStore(): RefreshTokenStore & { value: string | null } {
   };
 }
 
-describe("api client session", () => {
+describe("API 클라이언트 세션", () => {
   let server: ReturnType<typeof createFakeServer>;
   let store: ReturnType<typeof memoryStore>;
   const create = (fetch = server.fetch) =>
@@ -105,7 +105,7 @@ describe("api client session", () => {
     store = memoryStore();
   });
 
-  it("AUTH-16 keeps the refresh token in the store and notifies subscribers on sign-in", async () => {
+  it("AUTH-16 로그인하면 리프레시 토큰을 저장소에 두고 구독자에게 알린다", async () => {
     const client = create();
     const seen: unknown[] = [];
     client.subscribe(() => seen.push(client.getUser()));
@@ -117,7 +117,7 @@ describe("api client session", () => {
     expect(seen).toEqual([user]);
   });
 
-  it("AUTH-16 refreshes and retries once when the access token has expired", async () => {
+  it("AUTH-16 액세스 토큰이 만료되면 한 번 리프레시하고 호출을 다시 보낸다", async () => {
     const client = create();
     await client.signIn(credentials);
     server.expireAccessToken();
@@ -127,7 +127,7 @@ describe("api client session", () => {
     expect(store.value).toBe("refresh-1");
   });
 
-  it("AUTH-16 shares one refresh between concurrent calls that hit an expired token", async () => {
+  it("AUTH-16 만료된 토큰을 만난 동시 호출들이 리프레시 하나를 함께 기다린다", async () => {
     const client = create();
     await client.signIn(credentials);
     server.expireAccessToken();
@@ -138,7 +138,7 @@ describe("api client session", () => {
     expect(server.state.refreshCalls).toBe(1);
   });
 
-  it("AUTH-16 does not refresh for anonymous calls or failed sign-ins", async () => {
+  it("AUTH-16 익명 호출이나 실패한 로그인에는 리프레시하지 않는다", async () => {
     const client = create();
 
     await expect(client.api.auth.me()).rejects.toMatchObject({ code: "UNAUTHORIZED" });
@@ -148,7 +148,7 @@ describe("api client session", () => {
     expect(server.state.refreshCalls).toBe(0);
   });
 
-  it("AUTH-17 signs out locally when the server rejects the refresh token", async () => {
+  it("AUTH-17 서버가 리프레시 토큰을 거부하면 기기에서 로그아웃한다", async () => {
     const client = create();
     store.value = "refresh-stolen";
 
@@ -157,7 +157,7 @@ describe("api client session", () => {
     expect(client.getUser()).toBeNull();
   });
 
-  it("AUTH-17 restores a session from the stored refresh token", async () => {
+  it("AUTH-17 저장한 리프레시 토큰으로 세션을 복원한다", async () => {
     store.value = "refresh-0";
     const client = create();
 
@@ -165,7 +165,7 @@ describe("api client session", () => {
     expect(store.value).toBe("refresh-1");
   });
 
-  it("AUTH-17 clears the stored token on sign-out even if the server is unreachable", async () => {
+  it("AUTH-17 서버에 닿지 않아도 로그아웃하면 저장한 토큰을 지운다", async () => {
     const client = create(async () => {
       throw new TypeError("network down");
     });

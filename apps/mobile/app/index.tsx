@@ -26,7 +26,7 @@ export default function PostListScreen() {
     }),
   );
 
-  // A local flag, so background refetches (focus, invalidation) do not show the pull spinner.
+  // 로컬 플래그를 써서, 백그라운드 재조회(포커스, 무효화) 때는 당겨서 새로고침 스피너가 보이지 않게 한다.
   function refresh() {
     setRefreshing(true);
     void posts.refetch().finally(() => setRefreshing(false));
@@ -46,7 +46,7 @@ export default function PostListScreen() {
             user ? (
               <HeaderActions />
             ) : (
-              <TextButton title="Sign in" onPress={() => router.push("/sign-in")} />
+              <TextButton title="로그인" onPress={() => router.push("/sign-in")} />
             ),
         }}
       />
@@ -83,7 +83,7 @@ export default function PostListScreen() {
   );
 }
 
-/** Workspaces, the notification badge and New post. No live stream on mobile: the count refreshes on focus. */
+/** 워크스페이스, 알림 배지, 글쓰기. 모바일에는 실시간 스트림이 없어 화면에 포커스가 올 때 개수를 새로 읽는다. */
 function HeaderActions() {
   const unread = useQuery(orpc.notifications.unreadCount.queryOptions());
   const { refetch } = unread;
@@ -95,12 +95,12 @@ function HeaderActions() {
   const badge = formatBadge(unread.data?.count ?? 0);
   return (
     <View className="flex-row items-center gap-4">
-      <TextButton title="Teams" onPress={() => router.push("/workspaces")} />
+      <TextButton title="워크스페이스" onPress={() => router.push("/workspaces")} />
       <TextButton
         title={badge ? `🔔 ${badge}` : "🔔"}
         onPress={() => router.push("/notifications")}
       />
-      <TextButton title="New" onPress={() => router.push("/posts/new")} />
+      <TextButton title="글쓰기" onPress={() => router.push("/posts/new")} />
     </View>
   );
 }
@@ -110,11 +110,11 @@ function AccountBar({ nickname }: { nickname: string }) {
   return (
     <View className="flex-row items-center justify-between border-b border-neutral-100 px-5 py-3">
       <Text className="flex-1 text-sm text-neutral-500" numberOfLines={1}>
-        Signed in as <Text className="font-semibold text-neutral-900">{nickname}</Text>
+        <Text className="font-semibold text-neutral-900">{nickname}</Text>님으로 로그인했어요
       </Text>
-      {/* The client signs out locally even when the server cannot be reached, so errors are moot. */}
+      {/* 클라이언트는 서버에 닿지 않아도 로컬에서 로그아웃하므로 오류는 따질 필요가 없다. */}
       <TextButton
-        title="Sign out"
+        title="로그아웃"
         tone="muted"
         disabled={signOut.isPending}
         onPress={() => signOut.mutate()}
@@ -126,12 +126,12 @@ function AccountBar({ nickname }: { nickname: string }) {
 function EmptyState({ signedIn }: { signedIn: boolean }) {
   return (
     <View className="items-center gap-4 px-8 pt-20">
-      <Text className="text-lg font-semibold text-neutral-900">No posts yet</Text>
+      <Text className="text-lg font-semibold text-neutral-900">아직 글이 없어요</Text>
       <Text className="text-center text-base text-neutral-500">
-        {signedIn ? "Start the conversation." : "Sign in to write the first one."}
+        {signedIn ? "첫 글을 써 보세요." : "로그인하고 첫 글을 써 보세요."}
       </Text>
       <Button
-        title={signedIn ? "Write a post" : "Sign in"}
+        title={signedIn ? "글쓰기" : "로그인"}
         variant="secondary"
         compact
         onPress={() => router.push(signedIn ? "/posts/new" : "/sign-in")}
@@ -153,8 +153,8 @@ function ListFooter({
   if (!failed) return null;
   return (
     <View className="items-center gap-2 py-6">
-      <Text className="text-sm text-neutral-500">Could not load more posts.</Text>
-      <TextButton title="Try again" onPress={onRetry} />
+      <Text className="text-sm text-neutral-500">글을 더 불러오지 못했어요.</Text>
+      <TextButton title="다시 시도" onPress={onRetry} />
     </View>
   );
 }

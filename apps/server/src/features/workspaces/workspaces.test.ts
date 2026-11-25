@@ -9,7 +9,7 @@ const t = createTestApp();
 beforeEach(() => t.reset());
 afterAll(() => t.close());
 
-/** An owner with a workspace, plus helpers to add people to it with a role. */
+/** 워크스페이스 하나와 그 소유자, 그리고 역할을 정해 사람을 더하는 헬퍼다. */
 async function setUpWorkspace() {
   const owner = await t.signUp("owner");
   const workspace = await owner.api.workspaces.create({ name: "  Team  " });
@@ -38,8 +38,8 @@ async function count(table: string, column: string, value: string) {
   return result.rows[0]?.n;
 }
 
-describe("workspaces", () => {
-  it("WS-1 makes the creator the owner and lists the workspace with that role", async () => {
+describe("워크스페이스", () => {
+  it("WS-1 만든 사람이 소유자가 되고, 목록에 그 역할로 나온다", async () => {
     const { owner, workspace } = await setUpWorkspace();
 
     expect(workspace).toMatchObject({ name: "Team", role: "owner" });
@@ -52,7 +52,7 @@ describe("workspaces", () => {
     expect((await stranger.api.workspaces.list()).items).toEqual([]);
   });
 
-  it("WS-2 hides the workspace, its post list and its posts from non-members", async () => {
+  it("WS-2 멤버가 아니면 워크스페이스, 그 글 목록, 그 글이 보이지 않는다", async () => {
     const { owner, workspace } = await setUpWorkspace();
     const { id } = await owner.api.posts.create({
       title: "Secret",
@@ -79,7 +79,7 @@ describe("workspaces", () => {
     });
   });
 
-  it("WS-3 lets the owner and admins add existing accounts as members", async () => {
+  it("WS-3 소유자와 관리자가 이미 있는 계정을 멤버로 더한다", async () => {
     const { owner, workspace, join } = await setUpWorkspace();
     const admin = await join("admin", "admin");
     const member = await join("member");
@@ -109,7 +109,7 @@ describe("workspaces", () => {
     ).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
 
-  it("WS-4 lets only the owner change roles, and never the owner's", async () => {
+  it("WS-4 소유자만 역할을 바꾸고, 소유자의 역할은 바꿀 수 없다", async () => {
     const { owner, workspace, join } = await setUpWorkspace();
     const member = await join("member");
     const admin = await join("admin", "admin");
@@ -139,7 +139,7 @@ describe("workspaces", () => {
     ]);
   });
 
-  it("WS-5 lets an admin remove members but not other admins or the owner", async () => {
+  it("WS-5 관리자는 멤버를 내보내지만 다른 관리자나 소유자는 내보내지 못한다", async () => {
     const { owner, workspace, join } = await setUpWorkspace();
     const admin = await join("admin", "admin");
     const otherAdmin = await join("admin2", "admin");
@@ -152,7 +152,7 @@ describe("workspaces", () => {
     await expect(remove(otherAdmin.session.user.id)).rejects.toMatchObject({ code: "FORBIDDEN" });
     await expect(remove(owner.session.user.id)).rejects.toMatchObject({ code: "FORBIDDEN" });
 
-    // The owner can remove an admin.
+    // 소유자는 관리자를 내보낼 수 있다.
     await owner.api.workspaces.removeMember({
       workspaceId: workspace.id,
       userId: otherAdmin.session.user.id,
@@ -160,7 +160,7 @@ describe("workspaces", () => {
     expect((await otherAdmin.api.workspaces.list()).items).toEqual([]);
   });
 
-  it("WS-6 lets a member leave but not the owner", async () => {
+  it("WS-6 멤버는 나갈 수 있지만 소유자는 나가지 못한다", async () => {
     const { owner, workspace, join } = await setUpWorkspace();
     const member = await join("member");
 
@@ -177,7 +177,7 @@ describe("workspaces", () => {
     ).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
 
-  it("WS-7 ends access to workspace posts as soon as a member is removed", async () => {
+  it("WS-7 멤버를 내보내는 즉시 워크스페이스 글에 접근할 수 없다", async () => {
     const { owner, workspace, join } = await setUpWorkspace();
     const member = await join("member");
     const { id } = await member.api.posts.create({
@@ -197,11 +197,11 @@ describe("workspaces", () => {
       member.api.posts.update({ id, title: "Edited", body: "after removal" }),
     ).rejects.toMatchObject({ code: "NOT_FOUND" });
     await expect(member.api.posts.delete({ id })).rejects.toMatchObject({ code: "NOT_FOUND" });
-    // Rule 8: their post stays in the workspace.
+    // 규칙 8: 그 사람이 쓴 글은 워크스페이스에 남는다.
     expect((await owner.api.posts.get({ id })).author.nickname).toBe("member");
   });
 
-  it("WS-8 keeps workspace posts on the workspace board and off the public one", async () => {
+  it("WS-8 워크스페이스 글은 워크스페이스 게시판에만 있고 공개 게시판에는 없다", async () => {
     const { workspace, join } = await setUpWorkspace();
     const member = await join("member");
     const { id } = await member.api.posts.create({
@@ -217,7 +217,7 @@ describe("workspaces", () => {
     expect(publicBoard.items.map((p) => [p.id, p.workspaceId])).toEqual([[publicId, null]]);
     expect((await member.api.posts.get({ id })).workspaceId).toBe(workspace.id);
 
-    // An empty board is an empty list for a member, not NOT_FOUND.
+    // 멤버에게 빈 게시판은 NOT_FOUND가 아니라 빈 목록이다.
     const empty = await member.api.workspaces.create({ name: "Empty" });
     expect(await member.api.posts.list({ workspaceId: empty.id })).toEqual({
       items: [],
@@ -229,7 +229,7 @@ describe("workspaces", () => {
     ).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 
-  it("WS-8 pages through a workspace board with a cursor", async () => {
+  it("WS-8 커서로 워크스페이스 게시판의 페이지를 넘긴다", async () => {
     const { owner, workspace } = await setUpWorkspace();
     for (const title of ["one", "two", "three"]) {
       await owner.api.posts.create({ title, body: "b", workspaceId: workspace.id });
@@ -244,7 +244,7 @@ describe("workspaces", () => {
     expect(second.nextCursor).toBeNull();
   });
 
-  it("WS-9 lets admins and the owner delete others' posts and comments in the workspace", async () => {
+  it("WS-9 관리자와 소유자는 워크스페이스에서 다른 사람의 글과 댓글을 지울 수 있다", async () => {
     const { owner, workspace, join } = await setUpWorkspace();
     const admin = await join("admin", "admin");
     const member = await join("member");
@@ -267,7 +267,7 @@ describe("workspaces", () => {
     await admin.api.posts.delete({ id: postId });
     await expect(owner.api.posts.get({ id: postId })).rejects.toMatchObject({ code: "NOT_FOUND" });
 
-    // The owner moderates too.
+    // 소유자도 모더레이션한다.
     const { id: second } = await admin.api.posts.create({
       title: "By admin",
       body: "Body",
@@ -275,7 +275,7 @@ describe("workspaces", () => {
     });
     await owner.api.posts.delete({ id: second });
 
-    // Editing stays author-only, even for the owner.
+    // 수정은 소유자라도 할 수 없고 작성자만 한다.
     const { id: third } = await member.api.posts.create({
       title: "Mine",
       body: "Body",
@@ -286,7 +286,7 @@ describe("workspaces", () => {
     ).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
 
-  it("WS-9 keeps the public board author-only for deletes", async () => {
+  it("WS-9 공개 게시판에서는 작성자만 지울 수 있다", async () => {
     const { owner, workspace } = await setUpWorkspace();
     const writer = await t.signUp("writer");
     const { id } = await writer.api.posts.create({ title: "Public", body: "Body" });
@@ -299,7 +299,7 @@ describe("workspaces", () => {
     await expect(owner.api.posts.delete({ id })).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
 
-  it("WS-10 lets only the owner delete the workspace, with everything in it", async () => {
+  it("WS-10 소유자만 워크스페이스를 지울 수 있고, 안의 모든 것이 함께 지워진다", async () => {
     const { owner, workspace, join } = await setUpWorkspace();
     const admin = await join("admin", "admin");
     const member = await join("member");
@@ -331,7 +331,7 @@ describe("workspaces", () => {
     expect(await count("notifications", "post_id", postId)).toBe(0);
   });
 
-  it("WS-11 refuses comments and likes from non-members as NOT_FOUND", async () => {
+  it("WS-11 멤버가 아닌 사람의 댓글과 좋아요를 NOT_FOUND로 거부한다", async () => {
     const { owner, workspace } = await setUpWorkspace();
     const { id } = await owner.api.posts.create({
       title: "Post",

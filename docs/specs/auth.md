@@ -1,52 +1,61 @@
-# Auth
+# 명세: 인증
 
-- **Status**: Done
-- **Code**: `packages/contracts/src/auth.ts`, `apps/server/src/features/auth/`, `packages/api-client/`
+- **상태:** 완료
+- **ID 접두:** AUTH
+- **코드 경로:** `packages/contracts/src/auth.ts`, `apps/server/src/features/auth/`, `packages/api-client/src/index.ts`, `apps/web/src/routes/auth.tsx`, `apps/desktop/src/renderer/features/auth/`, `apps/mobile/app/sign-in.tsx`, `apps/mobile/app/sign-up.tsx`, `apps/mobile/src/session/`, `apps/mobile/src/lib/validation.ts`
+- **승인:** 2026-11-25
 
-## Goal
+## 목적
 
-Email and password accounts for the web, desktop and mobile clients, with short-lived access tokens and rotating refresh tokens. The same API serves browsers (refresh token in an HttpOnly cookie) and native apps (refresh token in the body, kept in the OS keychain).
+웹·데스크톱·모바일 클라이언트가 쓰는 이메일·비밀번호 계정. 수명이 짧은 액세스 토큰과 회전하는 리프레시 토큰을 쓴다. 같은 API가 브라우저(리프레시 토큰은 HttpOnly 쿠키)와 네이티브 앱(리프레시 토큰은 응답 본문으로 받아 OS 키체인에 보관)을 함께 지원한다.
 
-## Rules
+## 규칙
 
-1. Passwords are stored only as salted scrypt hashes and compared in constant time.
-2. Access tokens are HS256 JWTs valid for 15 minutes. Their audience is the client kind (`web` or `native`), and a token is accepted only from the same client kind.
-3. Refresh tokens are 256-bit random values. The database stores only their SHA-256 hash.
-4. Every refresh revokes the presented token and issues a new one in the same family (rotation). Refresh tokens expire after 14 days.
-5. Presenting a refresh token that was already rotated or revoked means it leaked: the whole family is revoked (reuse detection).
-6. Five consecutive failed logins lock the account for 15 minutes. A successful login resets the counter.
-7. Unknown email and wrong password return the same error and take the same time, so emails cannot be enumerated.
-8. Web clients send `x-client-kind: web`. Only then does the server read or set the refresh cookie (`HttpOnly`, `SameSite=Strict`, path `/rpc/auth`). A cross-site form cannot set that header, so the cookie cannot be used for CSRF.
+1. 비밀번호는 솔트를 친 scrypt 해시로만 저장하고 상수 시간으로 비교한다.
+2. 액세스 토큰은 15분짜리 HS256 JWT다. audience가 클라이언트 종류(`web` 또는 `native`)이고, 같은 종류의 클라이언트에서 온 토큰만 받는다.
+3. 리프레시 토큰은 256비트 난수다. DB에는 SHA-256 해시만 저장한다.
+4. 리프레시할 때마다 제시한 토큰을 폐기하고 같은 패밀리에 새 토큰을 발급한다(회전). 리프레시 토큰은 14일 뒤 만료된다.
+5. 이미 회전했거나 폐기된 리프레시 토큰이 다시 오면 유출로 본다. 그 패밀리 전체를 폐기한다(재사용 탐지).
+6. 로그인을 다섯 번 연속 실패하면 계정을 15분 잠근다. 로그인에 성공하면 실패 횟수를 0으로 되돌린다.
+7. 없는 이메일과 틀린 비밀번호는 같은 오류를 같은 시간 안에 돌려준다. 그래서 가입한 이메일을 알아낼 수 없다.
+8. 웹 클라이언트는 `x-client-kind: web` 헤더를 보낸다. 이 헤더가 있을 때만 서버가 리프레시 쿠키(`HttpOnly`, `SameSite=Strict`, 경로 `/rpc/auth`)를 읽거나 쓴다. 다른 사이트의 폼은 이 헤더를 붙일 수 없으므로 쿠키를 CSRF에 쓸 수 없다.
+9. 클라이언트는 한 번에 하나만 리프레시한다. 재사용된 리프레시 토큰은 패밀리를 폐기하므로, 리프레시 두 개가 동시에 나가면 사용자가 로그아웃된다. `packages/api-client`는 진행 중인 리프레시 하나를 호출자들이 함께 기다리게 한다.
 
-9. Clients refresh one at a time. A reused refresh token revokes its family, so two parallel refreshes would sign the user out. `packages/api-client` shares one in-flight refresh between callers.
+## 시나리오
 
-## Scenarios
+| ID      | 전제 / 행동                                                  | 결과                                                                                                  |
+| ------- | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
+| AUTH-1  | 새 사용자가 올바른 입력으로 가입한다                         | 계정이 생기고 세션이 돌아온다(웹: 쿠키, 네이티브: 본문의 토큰)                                        |
+| AUTH-2  | 대소문자만 다른 것까지 포함해 이미 가입한 이메일로 가입한다  | `EMAIL_TAKEN`                                                                                         |
+| AUTH-3  | 가입 입력이 틀렸다(이메일 형식, 8자 미만 비밀번호, 닉네임)   | 계약 검증에서 `BAD_REQUEST`. 이메일은 앞뒤 공백을 지우고 소문자로 바꾼다                              |
+| AUTH-4  | 맞는 비밀번호로 로그인한다                                   | 세션이 돌아오고 실패 횟수가 0이 된다                                                                  |
+| AUTH-5  | 틀린 비밀번호나 없는 이메일로 로그인한다                     | 둘 다 `INVALID_CREDENTIALS`                                                                           |
+| AUTH-6  | 다섯 번째 연속 로그인이 실패한다                             | 계정이 잠긴다. 맞는 비밀번호라도 `ACCOUNT_LOCKED`와 `retryAfterSeconds`                               |
+| AUTH-7  | 잠긴 뒤 15분이 지난다                                        | 맞는 비밀번호로 다시 로그인된다                                                                       |
+| AUTH-8  | 유효한 리프레시 토큰을 제시한다                              | 새 액세스·리프레시 토큰이 돌아오고 옛 리프레시 토큰은 폐기된다                                        |
+| AUTH-9  | 이미 회전한 리프레시 토큰을 다시 제시한다                    | `INVALID_REFRESH_TOKEN`. 그 패밀리의 최신 토큰도 더는 쓸 수 없다                                      |
+| AUTH-10 | 만료됐거나 모르는 리프레시 토큰을 제시한다                   | `INVALID_REFRESH_TOKEN`                                                                               |
+| AUTH-11 | 로그아웃한다                                                 | 패밀리가 폐기돼 이후 리프레시가 실패하고, 웹 쿠키가 지워진다                                          |
+| AUTH-12 | 유효한 액세스 토큰 없이 보호된 절차를 부른다                 | `UNAUTHORIZED`                                                                                        |
+| AUTH-13 | 한 클라이언트 종류에 발급된 액세스 토큰을 다른 종류에서 쓴다 | `UNAUTHORIZED`                                                                                        |
+| AUTH-14 | 비밀번호를 해시한다                                          | 솔트를 친 scrypt 해시이고, 원래 비밀번호만 검증을 통과한다                                            |
+| AUTH-15 | `x-client-kind: web` 없이 쿠키만으로 리프레시한다            | `INVALID_REFRESH_TOKEN`                                                                               |
+| AUTH-16 | 로그인한 동안 클라이언트의 액세스 토큰이 만료된다            | 클라이언트가 한 번만 리프레시하고(동시 호출이 함께 기다린다) 호출을 다시 보낸다                       |
+| AUTH-17 | 서버가 클라이언트의 리프레시 토큰을 거부한다                 | 클라이언트가 저장한 토큰을 지우고 기기에서 로그아웃한다                                               |
+| AUTH-18 | 로그인 폼을 제출한다                                         | 이메일 형식과 비밀번호가 비어 있지 않은지만 본다. 길이 규칙은 가입 때만 검사한다                      |
+| AUTH-19 | 네이티브 앱이 리프레시 토큰을 저장하고 읽는다                | OS 보안 저장소의 키 하나에 최신 토큰만 둔다. 저장한 적이 없으면 `null`이다                            |
+| AUTH-20 | 웹 로그인 화면이 로그인 뒤 돌아갈 주소를 받는다              | 같은 앱 안의 경로(`/`로 시작하고 `//`가 아님)만 쓰고, 그 밖의 값은 `/`로 바꾼다(열린 리다이렉트 방지) |
 
-| ID      | Given / When                                                         | Then                                                                                          |
-| ------- | -------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| AUTH-1  | A new user signs up with valid input                                 | The account is created and a session is returned (web: cookie, native: token in body)         |
-| AUTH-2  | Sign-up uses an email that is already registered, in any letter case | `EMAIL_TAKEN`                                                                                 |
-| AUTH-3  | Sign-up input is invalid (email format, password under 8, nickname)  | `BAD_REQUEST` from contract validation; email is trimmed and lowercased                       |
-| AUTH-4  | A user logs in with the right password                               | A session is returned and the failure counter is reset                                        |
-| AUTH-5  | Login uses a wrong password or an unknown email                      | `INVALID_CREDENTIALS` for both                                                                |
-| AUTH-6  | The fifth consecutive login fails                                    | The account is locked: `ACCOUNT_LOCKED` with `retryAfterSeconds`, even for the right password |
-| AUTH-7  | 15 minutes pass after a lock                                         | The right password works again                                                                |
-| AUTH-8  | A valid refresh token is presented                                   | New access and refresh tokens are returned and the old refresh token is revoked               |
-| AUTH-9  | An already rotated refresh token is presented again                  | `INVALID_REFRESH_TOKEN`, and the newest token of that family stops working too                |
-| AUTH-10 | An expired or unknown refresh token is presented                     | `INVALID_REFRESH_TOKEN`                                                                       |
-| AUTH-11 | A user logs out                                                      | The family is revoked, later refreshes fail, and the web cookie is cleared                    |
-| AUTH-12 | A protected procedure is called without a valid access token         | `UNAUTHORIZED`                                                                                |
-| AUTH-13 | An access token issued to one client kind is used by the other       | `UNAUTHORIZED`                                                                                |
-| AUTH-14 | A password is hashed                                                 | The hash is salted scrypt and verifies only the original password                             |
-| AUTH-15 | A refresh is sent with the cookie but without `x-client-kind: web`   | `INVALID_REFRESH_TOKEN`                                                                       |
-| AUTH-16 | A client's access token expires while the user is signed in          | The client refreshes once (shared by concurrent calls) and retries the call                   |
-| AUTH-17 | The server rejects a client's refresh token                          | The client clears its stored token and signs out locally                                      |
+## 계약
 
-## Contract
+`auth.signup`, `auth.login`, `auth.refresh`, `auth.logout`, `auth.me`. 타입 있는 오류: `EMAIL_TAKEN`(409), `INVALID_CREDENTIALS`(401), `ACCOUNT_LOCKED`(423, `{ retryAfterSeconds }`), `INVALID_REFRESH_TOKEN`(401).
 
-`auth.signup`, `auth.login`, `auth.refresh`, `auth.logout`, `auth.me`. Typed errors: `EMAIL_TAKEN` (409), `INVALID_CREDENTIALS` (401), `ACCOUNT_LOCKED` (423, `{ retryAfterSeconds }`), `INVALID_REFRESH_TOKEN` (401).
+## 데이터
 
-## Data
+- `users`: 고유한 `email`, `password_hash`, `failed_login_count`, `locked_until`.
+- `refresh_tokens`: `family_id`, 고유한 `token_hash`, `expires_at`, `revoked_at`, `replaced_by_id`. 회전은 `UPDATE ... WHERE revoked_at IS NULL`로 폐기하므로, 같은 토큰으로 동시에 들어온 리프레시 두 개가 모두 성공할 수 없다.
 
-- `users`: unique `email`, `password_hash`, `failed_login_count`, `locked_until`.
-- `refresh_tokens`: `family_id`, unique `token_hash`, `expires_at`, `revoked_at`, `replaced_by_id`. Rotation revokes with `UPDATE ... WHERE revoked_at IS NULL`, so two concurrent refreshes with the same token cannot both succeed.
+## 변경 기록
+
+- 2026-11-05: 처음 작성 (AUTH-1~17, 사용자 승인)
+- 2026-11-25: 한국어 양식으로 옮기고, 테스트로 이미 지키던 클라이언트 동작을 시나리오로 적음 (AUTH-18~20, 동작 변경 없음)
